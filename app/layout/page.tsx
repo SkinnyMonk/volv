@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { X } from 'lucide-react';
+import ResizableWidgetContainer from '@/components/ResizableWidgetContainer';
 
 interface Widget {
   id: number;
@@ -29,7 +30,6 @@ interface GridWidget {
 export default function LayoutPage() {
   const [openWidget, setOpenWidget] = useState(false);
   const [gridWidgets, setGridWidgets] = useState<GridWidget[]>([]);
-  const gridContainerRef = useRef<HTMLDivElement>(null);
 
   const GRID_ROWS = 4;
 
@@ -58,16 +58,7 @@ export default function LayoutPage() {
   // Redistribute all widgets when a new one is added
   const redistributeAllWidgets = (newWidget: GridWidget): GridWidget[] => {
     const allWidgets = [...gridWidgets, newWidget];
-    const totalWidgets = allWidgets.length;
-    const colsPerWidget = 12 / totalWidgets; // Use flexible division instead of floor
-
-    return allWidgets.map((widget, index) => ({
-      ...widget,
-      cols: colsPerWidget,
-      rows: GRID_ROWS,
-      row: 0,
-      col: index * colsPerWidget,
-    }));
+    return allWidgets;
   };
 
   const handleAddWidget = (widget: Widget) => {
@@ -85,7 +76,7 @@ export default function LayoutPage() {
       col: layout.col,
     };
 
-    // Add new widget and redistribute all widgets
+    // Add new widget
     const updatedWidgets = redistributeAllWidgets(newWidget);
     setGridWidgets(updatedWidgets);
     setOpenWidget(false);
@@ -93,34 +84,10 @@ export default function LayoutPage() {
 
   const handleRemoveWidget = (instanceId: string) => {
     const filtered = gridWidgets.filter((w) => w.instanceId !== instanceId);
-    
-    if (filtered.length === 0) {
-      setGridWidgets([]);
-      return;
-    }
-
-    // Redistribute remaining widgets
-    const totalWidgets = filtered.length;
-    const colsPerWidget = 12 / totalWidgets; // Use flexible division instead of floor
-
-    const redistributed = filtered.map((widget, index) => ({
-      ...widget,
-      cols: colsPerWidget,
-      rows: GRID_ROWS,
-      row: 0,
-      col: index * colsPerWidget,
-    }));
-
-    setGridWidgets(redistributed);
+    setGridWidgets(filtered);
   };
 
-  const handleMouseUp = () => {
-    // No-op with flexbox layout
-  };
 
-  const handleMouseMoveResize = () => {
-    // No-op with flexbox layout
-  };
 
   return (
     <main className="w-screen h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
@@ -167,44 +134,41 @@ export default function LayoutPage() {
 
       {/* Main Grid Container */}
       <div 
-        ref={gridContainerRef}
-        className="flex-1 m-6 border border-gray-400 rounded-lg p-6 overflow-hidden bg-slate-800 bg-opacity-50"
-        onMouseMove={handleMouseMoveResize}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        className="flex-1 m-6 border border-gray-400 rounded-lg p-2 overflow-hidden bg-slate-800 bg-opacity-50"
       >
         {gridWidgets.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-gray-400 text-lg">Select a widget from Add Widget button to get started</p>
           </div>
         ) : (
-          <div
-            className="w-full h-full gap-4 p-2 flex"
-            style={{
-              backgroundColor: 'rgba(100, 116, 139, 0.1)',
-              borderRadius: '0.5rem',
-            }}
-          >
-            {gridWidgets.map((widget) => (
-              <div
-                key={widget.instanceId}
-                className={`${widget.color} rounded-lg shadow-lg p-4 flex flex-col items-center justify-center relative group hover:shadow-xl transition user-select-none flex-1`}
-                style={{
-                  minHeight: '80px',
-                }}
-              >
-                <p className="text-white font-semibold text-center text-sm pointer-events-none">{widget.name}</p>
+          <ResizableWidgetContainer
+            key={gridWidgets.length}
+            gap={2}
+            widgets={gridWidgets.map((widget) => ({
+              id: widget.instanceId,
+              content: (
+                <div className={`${widget.color} rounded-lg shadow-lg flex flex-col relative group hover:shadow-xl transition user-select-none overflow-hidden h-full`}>
+                  {/* Header Section - 50px */}
+                  <div className="h-12 border-b border-white border-opacity-20 flex items-center justify-between px-4">
+                    <p className="text-white font-semibold text-sm pointer-events-none">{widget.name}</p>
+                    
+                    {/* Remove Button */}
+                    <button
+                      onClick={() => handleRemoveWidget(widget.instanceId)}
+                      className="p-1 hover:bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <X size={14} className="text-white" />
+                    </button>
+                  </div>
 
-                {/* Remove Button */}
-                <button
-                  onClick={() => handleRemoveWidget(widget.instanceId)}
-                  className="absolute top-2 right-2 p-1 bg-red-600 hover:bg-red-700 rounded-full opacity-0 group-hover:opacity-100 transition"
-                >
-                  <X size={16} className="text-white" />
-                </button>
-              </div>
-            ))}
-          </div>
+                  {/* Content Section */}
+                  <div className="flex-1 flex items-center justify-center p-4">
+                    {/* Widget content goes here */}
+                  </div>
+                </div>
+              ),
+            }))}
+          />
         )}
       </div>
     </main>
