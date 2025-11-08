@@ -69,6 +69,10 @@ When linting, run: `npm run lint`
 4. **Type Safety**: Leverage `React.ReactNode`, `Metadata` type for consistency with `app/layout.tsx`
 5. **Styling**: Use Tailwind utility classes; avoid inline styles when possible
 
+## Code Documentation Rule
+
+**⚠️ IMPORTANT**: Do NOT create any `.md`, `.txt`, `README`, or documentation files. Only write code files. No summaries, guides, or explanatory documents.
+
 ## Build & Deployment
 
 - **Output**: Production build in `.next/` directory

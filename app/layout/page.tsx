@@ -9,6 +9,10 @@ interface Widget {
   color: string;
   defaultCols: number;
   defaultRows: number;
+  minCols: number;
+  maxCols: number;
+  minRows: number;
+  maxRows: number;
 }
 
 interface GridWidget {
@@ -22,161 +26,100 @@ interface GridWidget {
   col: number;
 }
 
-interface DragState {
-  isDragging: boolean;
-  instanceId: string | null;
-  startX: number;
-  startY: number;
-  startRow: number;
-  startCol: number;
-  offsetX: number;
-  offsetY: number;
-}
-
 export default function LayoutPage() {
   const [openWidget, setOpenWidget] = useState(false);
   const [gridWidgets, setGridWidgets] = useState<GridWidget[]>([]);
-  const [dragState, setDragState] = useState<DragState>({
-    isDragging: false,
-    instanceId: null,
-    startX: 0,
-    startY: 0,
-    startRow: 0,
-    startCol: 0,
-    offsetX: 0,
-    offsetY: 0,
-  });
   const gridContainerRef = useRef<HTMLDivElement>(null);
 
-  const GRID_COLS = 12;
   const GRID_ROWS = 4;
 
   const availableWidgets: Widget[] = [
-    { id: 1, name: 'Chart', color: 'bg-blue-500', defaultCols: 6, defaultRows: 2 },
-    { id: 2, name: 'Option Chain', color: 'bg-purple-500', defaultCols: 4, defaultRows: 2 },
-    { id: 3, name: 'Positions', color: 'bg-green-500', defaultCols: 3, defaultRows: 2 },
-    { id: 4, name: 'Orders', color: 'bg-orange-500', defaultCols: 3, defaultRows: 1 },
-    { id: 5, name: 'Market Depth', color: 'bg-red-500', defaultCols: 4, defaultRows: 2 },
-    { id: 6, name: 'Market Watch', color: 'bg-pink-500', defaultCols: 3, defaultRows: 2 },
+    { id: 1, name: 'Chart', color: 'bg-blue-500', defaultCols: 6, defaultRows: 2, minCols: 4, maxCols: 12, minRows: 1, maxRows: 4 },
+    { id: 2, name: 'Option Chain', color: 'bg-purple-500', defaultCols: 4, defaultRows: 2, minCols: 3, maxCols: 8, minRows: 1, maxRows: 4 },
+    { id: 3, name: 'Positions', color: 'bg-green-500', defaultCols: 3, defaultRows: 2, minCols: 2, maxCols: 6, minRows: 1, maxRows: 3 },
+    { id: 4, name: 'Orders', color: 'bg-orange-500', defaultCols: 3, defaultRows: 1, minCols: 2, maxCols: 6, minRows: 1, maxRows: 2 },
+    { id: 5, name: 'Market Depth', color: 'bg-red-500', defaultCols: 4, defaultRows: 2, minCols: 3, maxCols: 8, minRows: 1, maxRows: 4 },
+    { id: 6, name: 'Market Watch', color: 'bg-pink-500', defaultCols: 3, defaultRows: 2, minCols: 2, maxCols: 6, minRows: 1, maxRows: 4 },
   ];
 
-  // Find the next available position on the grid
-  const findNextAvailablePosition = (cols: number, rows: number): { row: number; col: number } | null => {
-    // Try to place widget from left to right, top to bottom
-    for (let row = 0; row < GRID_ROWS - rows + 1; row++) {
-      for (let col = 0; col < GRID_COLS - cols + 1; col++) {
-        // Check if this position is available
-        const isAvailable = gridWidgets.every((widget) => {
-          const widgetEndRow = widget.row + widget.rows;
-          const widgetEndCol = widget.col + widget.cols;
-          const newEndRow = row + rows;
-          const newEndCol = col + cols;
+  // Calculate dimensions for equal horizontal distribution
+  const calculateWidgetLayout = (): { cols: number; rows: number; col: number } => {
+    const totalWidgets = gridWidgets.length + 1; // +1 for the widget being added
+    const colsPerWidget = 12 / totalWidgets; // Use flexible division instead of floor
+    const colPosition = gridWidgets.length * colsPerWidget;
 
-          return (
-            newEndRow <= widget.row || // New widget is above
-            row >= widgetEndRow || // New widget is below
-            newEndCol <= widget.col || // New widget is to the left
-            col >= widgetEndCol // New widget is to the right
-          );
-        });
+    return {
+      cols: colsPerWidget,
+      rows: GRID_ROWS, // Full height
+      col: colPosition,
+    };
+  };
 
-        if (isAvailable) {
-          return { row, col };
-        }
-      }
-    }
-    return null;
+  // Redistribute all widgets when a new one is added
+  const redistributeAllWidgets = (newWidget: GridWidget): GridWidget[] => {
+    const allWidgets = [...gridWidgets, newWidget];
+    const totalWidgets = allWidgets.length;
+    const colsPerWidget = 12 / totalWidgets; // Use flexible division instead of floor
+
+    return allWidgets.map((widget, index) => ({
+      ...widget,
+      cols: colsPerWidget,
+      rows: GRID_ROWS,
+      row: 0,
+      col: index * colsPerWidget,
+    }));
   };
 
   const handleAddWidget = (widget: Widget) => {
-    const position = findNextAvailablePosition(widget.defaultCols, widget.defaultRows);
+    const layout = calculateWidgetLayout();
+    const uniqueId = `${widget.id}-${gridWidgets.length}-${new Date().getTime()}`;
 
-    if (position) {
-      const newWidget: GridWidget = {
-        widgetId: widget.id,
-        instanceId: `${widget.id}-${Date.now()}`,
-        name: widget.name,
-        color: widget.color,
-        cols: widget.defaultCols,
-        rows: widget.defaultRows,
-        row: position.row,
-        col: position.col,
-      };
+    const newWidget: GridWidget = {
+      widgetId: widget.id,
+      instanceId: uniqueId,
+      name: widget.name,
+      color: widget.color,
+      cols: layout.cols,
+      rows: layout.rows,
+      row: 0,
+      col: layout.col,
+    };
 
-      setGridWidgets([...gridWidgets, newWidget]);
-      setOpenWidget(false);
-    } else {
-      alert('Not enough space to add this widget!');
-    }
+    // Add new widget and redistribute all widgets
+    const updatedWidgets = redistributeAllWidgets(newWidget);
+    setGridWidgets(updatedWidgets);
+    setOpenWidget(false);
   };
 
   const handleRemoveWidget = (instanceId: string) => {
-    setGridWidgets(gridWidgets.filter((w) => w.instanceId !== instanceId));
-  };
+    const filtered = gridWidgets.filter((w) => w.instanceId !== instanceId);
+    
+    if (filtered.length === 0) {
+      setGridWidgets([]);
+      return;
+    }
 
-  const handleMouseDown = (e: React.MouseEvent, instanceId: string) => {
-    if (!gridContainerRef.current) return;
+    // Redistribute remaining widgets
+    const totalWidgets = filtered.length;
+    const colsPerWidget = 12 / totalWidgets; // Use flexible division instead of floor
 
-    const widget = gridWidgets.find((w) => w.instanceId === instanceId);
-    if (!widget) return;
+    const redistributed = filtered.map((widget, index) => ({
+      ...widget,
+      cols: colsPerWidget,
+      rows: GRID_ROWS,
+      row: 0,
+      col: index * colsPerWidget,
+    }));
 
-    const rect = gridContainerRef.current.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const offsetY = e.clientY - rect.top;
-
-    setDragState({
-      isDragging: true,
-      instanceId,
-      startX: e.clientX,
-      startY: e.clientY,
-      startRow: widget.row,
-      startCol: widget.col,
-      offsetX,
-      offsetY,
-    });
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!dragState.isDragging || !gridContainerRef.current || !dragState.instanceId) return;
-
-    const rect = gridContainerRef.current.getBoundingClientRect();
-    const currentX = e.clientX - rect.left;
-    const currentY = e.clientY - rect.top;
-
-    const widget = gridWidgets.find((w) => w.instanceId === dragState.instanceId);
-    if (!widget) return;
-
-    // Calculate grid cell size
-    const cellWidth = rect.width / GRID_COLS;
-    const cellHeight = rect.height / GRID_ROWS;
-
-    // Calculate which grid cell we're hovering over
-    let newCol = Math.floor(currentX / cellWidth);
-    let newRow = Math.floor(currentY / cellHeight);
-
-    // Clamp to valid grid positions
-    newCol = Math.max(0, Math.min(newCol, GRID_COLS - widget.cols));
-    newRow = Math.max(0, Math.min(newRow, GRID_ROWS - widget.rows));
-
-    // Update widget position
-    setGridWidgets(
-      gridWidgets.map((w) =>
-        w.instanceId === dragState.instanceId ? { ...w, row: newRow, col: newCol } : w
-      )
-    );
+    setGridWidgets(redistributed);
   };
 
   const handleMouseUp = () => {
-    setDragState({
-      isDragging: false,
-      instanceId: null,
-      startX: 0,
-      startY: 0,
-      startRow: 0,
-      startCol: 0,
-      offsetX: 0,
-      offsetY: 0,
-    });
+    // No-op with flexbox layout
+  };
+
+  const handleMouseMoveResize = () => {
+    // No-op with flexbox layout
   };
 
   return (
@@ -192,23 +135,32 @@ export default function LayoutPage() {
             Add Widget
           </button>
 
-          {/* Dropdown Modal */}
+          {/* Dropdown Modal with Click Outside Handler */}
           {openWidget && (
-            <div className="absolute top-14 right-0 bg-slate-800 border border-gray-600 rounded-lg shadow-2xl p-6 w-96 z-50">
-              <div className="grid grid-cols-3 gap-6">
-                {availableWidgets.map((widget) => (
-                  <div
-                    key={widget.id}
-                    className="flex flex-col items-center cursor-pointer hover:opacity-80 transition"
-                    onClick={() => handleAddWidget(widget)}
-                  >
-                    <div className={`${widget.color} w-24 h-24 rounded-lg mb-3 shadow-lg hover:shadow-xl transition`}></div>
-                    <span className="text-white text-xs font-medium text-center">{widget.name}</span>
-                    <span className="text-gray-400 text-xs mt-2">{widget.defaultCols}×{widget.defaultRows}</span>
-                  </div>
-                ))}
+            <>
+              {/* Invisible overlay to catch clicks outside modal */}
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setOpenWidget(false)}
+              />
+              
+              {/* Modal */}
+              <div className="absolute top-14 right-0 bg-slate-800 border border-gray-600 rounded-lg shadow-2xl p-6 w-96 z-50">
+                <div className="grid grid-cols-3 gap-6">
+                  {availableWidgets.map((widget) => (
+                    <div
+                      key={widget.id}
+                      className="flex flex-col items-center cursor-pointer hover:opacity-80 transition"
+                      onClick={() => handleAddWidget(widget)}
+                    >
+                      <div className={`${widget.color} w-24 h-24 rounded-lg mb-3 shadow-lg hover:shadow-xl transition`}></div>
+                      <span className="text-white text-xs font-medium text-center">{widget.name}</span>
+                      <span className="text-gray-400 text-xs mt-2">{widget.defaultCols}×{widget.defaultRows}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>
@@ -217,7 +169,7 @@ export default function LayoutPage() {
       <div 
         ref={gridContainerRef}
         className="flex-1 m-6 border border-gray-400 rounded-lg p-6 overflow-hidden bg-slate-800 bg-opacity-50"
-        onMouseMove={handleMouseMove}
+        onMouseMove={handleMouseMoveResize}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       >
@@ -227,42 +179,21 @@ export default function LayoutPage() {
           </div>
         ) : (
           <div
-            className="w-full h-full gap-4 p-2"
+            className="w-full h-full gap-4 p-2 flex"
             style={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
-              gridTemplateRows: `repeat(${GRID_ROWS}, 1fr)`,
-              gridAutoRows: `minmax(80px, 1fr)`,
-              gridAutoColumns: `minmax(1fr, 1fr)`,
               backgroundColor: 'rgba(100, 116, 139, 0.1)',
               borderRadius: '0.5rem',
-              backgroundImage: `
-                linear-gradient(90deg, rgba(148, 163, 184, 0.3) 1px, transparent 1px),
-                linear-gradient(180deg, rgba(148, 163, 184, 0.3) 1px, transparent 1px)
-              `,
-              backgroundSize: `${100 / GRID_COLS}% ${100 / GRID_ROWS}%`,
             }}
           >
             {gridWidgets.map((widget) => (
               <div
                 key={widget.instanceId}
-                className={`${widget.color} rounded-lg shadow-lg p-4 flex flex-col items-center justify-center relative group hover:shadow-xl transition user-select-none ${
-                  dragState.isDragging && dragState.instanceId === widget.instanceId
-                    ? 'opacity-75 cursor-grabbing'
-                    : 'cursor-grab'
-                }`}
+                className={`${widget.color} rounded-lg shadow-lg p-4 flex flex-col items-center justify-center relative group hover:shadow-xl transition user-select-none flex-1`}
                 style={{
-                  gridColumn: `${widget.col + 1} / span ${widget.cols}`,
-                  gridRow: `${widget.row + 1} / span ${widget.rows}`,
                   minHeight: '80px',
-                }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  handleMouseDown(e, widget.instanceId);
                 }}
               >
                 <p className="text-white font-semibold text-center text-sm pointer-events-none">{widget.name}</p>
-                <p className="text-white text-xs opacity-70 pointer-events-none">({widget.cols}×{widget.rows})</p>
 
                 {/* Remove Button */}
                 <button
