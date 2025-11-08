@@ -3,6 +3,14 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import ResizableWidgetContainer from '@/components/ResizableWidgetContainer';
+import ChartWidget from '@/components/widgets/ChartWidget';
+import OptionChainWidget from '@/components/widgets/OptionChainWidget';
+import PositionsWidget from '@/components/widgets/PositionsWidget';
+import OrdersWidget from '@/components/widgets/OrdersWidget';
+import MarketDepthWidget from '@/components/widgets/MarketDepthWidget';
+import MarketWatchWidget from '@/components/widgets/MarketWatchWidget';
+import OrderFormModal from '@/components/OrderFormModal';
+import WidgetPreviewSmall from '@/components/WidgetPreviewSmall';
 
 interface Widget {
   id: number;
@@ -27,9 +35,30 @@ interface GridWidget {
   col: number;
 }
 
+// Get widget component based on widget ID
+const getWidgetComponent = (widgetId: number) => {
+  switch (widgetId) {
+    case 1:
+      return <ChartWidget />;
+    case 2:
+      return <OptionChainWidget />;
+    case 3:
+      return <PositionsWidget />;
+    case 4:
+      return <OrdersWidget />;
+    case 5:
+      return <MarketDepthWidget />;
+    case 6:
+      return <MarketWatchWidget />;
+    default:
+      return null;
+  }
+};
+
 export default function LayoutPage() {
   const [openWidget, setOpenWidget] = useState(false);
   const [gridWidgets, setGridWidgets] = useState<GridWidget[]>([]);
+  const [isOrderFormOpen, setIsOrderFormOpen] = useState(false);
 
   const GRID_ROWS = 4;
 
@@ -62,6 +91,13 @@ export default function LayoutPage() {
   };
 
   const handleAddWidget = (widget: Widget) => {
+    // Special handling for Order Form (widget ID 7)
+    if (widget.id === 7) {
+      setIsOrderFormOpen(true);
+      setOpenWidget(false);
+      return;
+    }
+
     const layout = calculateWidgetLayout();
     const uniqueId = `${widget.id}-${gridWidgets.length}-${new Date().getTime()}`;
 
@@ -97,9 +133,9 @@ export default function LayoutPage() {
         <div className="relative">
           <button
             onClick={() => setOpenWidget(!openWidget)}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200 shadow-lg hover:shadow-xl"
           >
-            Add Widget
+            + Add Widget
           </button>
 
           {/* Dropdown Modal with Click Outside Handler */}
@@ -115,16 +151,43 @@ export default function LayoutPage() {
               <div className="absolute top-14 right-0 bg-slate-800 border border-gray-600 rounded-lg shadow-2xl p-6 w-96 z-50">
                 <div className="grid grid-cols-3 gap-6">
                   {availableWidgets.map((widget) => (
-                    <div
+                    <button
                       key={widget.id}
-                      className="flex flex-col items-center cursor-pointer hover:opacity-80 transition"
+                      className="flex flex-col cursor-pointer group relative"
                       onClick={() => handleAddWidget(widget)}
+                      title={`Add ${widget.name} widget`}
                     >
-                      <div className={`${widget.color} w-24 h-24 rounded-lg mb-3 shadow-lg hover:shadow-xl transition`}></div>
-                      <span className="text-white text-xs font-medium text-center">{widget.name}</span>
-                      <span className="text-gray-400 text-xs mt-2">{widget.defaultCols}×{widget.defaultRows}</span>
-                    </div>
+                      {/* Widget Preview - 100x100px */}
+                      <div className="w-24 h-24 bg-slate-700 border border-gray-600 rounded-lg overflow-hidden relative group-hover:border-blue-500 group-hover:shadow-lg transition-all duration-200">
+                        <WidgetPreviewSmall widgetId={widget.id} />
+                      </div>
+                      {/* Widget Name Only */}
+                      <div className="mt-2">
+                        <span className="text-white text-xs font-medium block text-center">{widget.name}</span>
+                      </div>
+                    </button>
                   ))}
+
+                  {/* Order Form Widget */}
+                  <button
+                    className="flex flex-col cursor-pointer group relative"
+                    onClick={() => handleAddWidget({ id: 7, name: 'Order Form', color: 'bg-indigo-600', defaultCols: 0, defaultRows: 0, minCols: 0, maxCols: 0, minRows: 0, maxRows: 0 })}
+                    title="Open Order Form Modal"
+                  >
+                    {/* Preview */}
+                    <div className="w-24 h-24 bg-indigo-900 border border-indigo-600 rounded-lg overflow-hidden relative group-hover:border-indigo-400 group-hover:shadow-lg transition-all duration-200 flex flex-col items-center justify-center">
+                      <div className="text-2xl">📝</div>
+                    </div>
+                    {/* Widget Name Only */}
+                    <div className="mt-2">
+                      <span className="text-white text-xs font-medium block text-center">Order Form</span>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="mt-4 pt-3 border-t border-gray-700">
+                  <p className="text-gray-400 text-xs text-center">Click any widget to add it to your dashboard</p>
                 </div>
               </div>
             </>
@@ -147,9 +210,9 @@ export default function LayoutPage() {
             widgets={gridWidgets.map((widget) => ({
               id: widget.instanceId,
               content: (
-                <div className={`${widget.color} rounded-lg shadow-lg flex flex-col relative group hover:shadow-xl transition user-select-none overflow-hidden h-full`}>
-                  {/* Header Section - 50px */}
-                  <div className="h-12 border-b border-white border-opacity-20 flex items-center justify-between px-4">
+                <div className="rounded-lg shadow-lg flex flex-col relative group hover:shadow-xl transition user-select-none overflow-hidden h-full bg-slate-800 border border-gray-700">
+                  {/* Header Section */}
+                  <div className="h-12 border-b border-white border-opacity-10 flex items-center justify-between px-4 bg-slate-900">
                     <p className="text-white font-semibold text-sm pointer-events-none">{widget.name}</p>
                     
                     {/* Remove Button */}
@@ -162,8 +225,8 @@ export default function LayoutPage() {
                   </div>
 
                   {/* Content Section */}
-                  <div className="flex-1 flex items-center justify-center p-4">
-                    {/* Widget content goes here */}
+                  <div className="flex-1 overflow-hidden w-full bg-slate-800">
+                    {getWidgetComponent(widget.widgetId)}
                   </div>
                 </div>
               ),
@@ -171,6 +234,12 @@ export default function LayoutPage() {
           />
         )}
       </div>
+
+      {/* Order Form Modal - Controlled by state */}
+      <OrderFormModal 
+        isOpen={isOrderFormOpen} 
+        onClose={() => setIsOrderFormOpen(false)}
+      />
     </main>
   );
 }

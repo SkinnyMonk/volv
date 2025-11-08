@@ -85,3 +85,15 @@ When linting, run: `npm run lint`
 - **No API Routes Yet**: Add API handlers in `app/api/` as needed
 - **No Testing Configured**: Consider Jest + React Testing Library if tests are required
 - **Vercel Platform**: README suggests Vercel for deployment (native Next.js support)
+
+
+## Development Environment Notes
+
+- The development server (`npm run dev`) is **already running manually** on localhost.
+- **Never start or restart** the development server as part of validation, testing, or build verification.
+- When validating code or checking for errors, **only perform static validation** (lint, type-check, or dry-run builds if needed).
+- Do **not** execute `npm run dev`, `npm run build`, or `next dev`.
+- If you need to ensure type safety, you may run:
+  ```bash
+  npm run type-check || true
+

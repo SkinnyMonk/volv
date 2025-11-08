@@ -91,8 +91,8 @@ export default function ResizableWidgetContainer({
           {index < widgets.length - 1 && (
             <div
               onMouseDown={(e) => handleMouseDownBorder(index, e)}
-              className={`w-1 bg-linear-to-b from-transparent via-blue-500 to-transparent hover:bg-blue-400 hover:w-1.5 cursor-col-resize transition-all duration-150 ${
-                draggedBorderIndex === index ? 'bg-blue-300 w-1.5' : 'opacity-0 group-hover:opacity-100'
+              className={`w-0.5 bg-gray-600 hover:bg-gray-400 cursor-col-resize transition-all duration-150 ${
+                draggedBorderIndex === index ? 'bg-gray-300' : 'opacity-60 hover:opacity-100'
               }`}
               style={{
                 marginLeft: `${gap / 2}px`,
