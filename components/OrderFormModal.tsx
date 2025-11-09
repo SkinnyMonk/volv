@@ -15,10 +15,10 @@ export default function OrderFormModal({ isOpen, onClose }: OrderFormModalProps)
   const modalRef = useRef<HTMLDivElement>(null);
   
   const [formData, setFormData] = useState({
-    symbol: 'AAPL',
+    symbol: 'TCS',
     orderType: 'BUY',
     quantity: '1',
-    price: '150.25',
+    price: '3745.25',
     orderExecutionType: 'LIMIT',
   });
 
@@ -93,7 +93,7 @@ export default function OrderFormModal({ isOpen, onClose }: OrderFormModalProps)
             value={formData.symbol}
             onChange={(e) => setFormData({ ...formData, symbol: e.target.value.toUpperCase() })}
             className="w-full bg-slate-700 border border-gray-600 text-white px-3 py-2 rounded text-xs focus:outline-none focus:border-blue-500"
-            placeholder="e.g., AAPL"
+            placeholder="e.g., TCS"
           />
         </div>
 
@@ -167,7 +167,7 @@ export default function OrderFormModal({ isOpen, onClose }: OrderFormModalProps)
           <div className="flex justify-between text-gray-400">
             <span>Total Value:</span>
             <span className="text-white font-semibold">
-              ${(parseFloat(formData.quantity || '0') * parseFloat(formData.price || '0')).toFixed(2)}
+              ₹{(parseFloat(formData.quantity || '0') * parseFloat(formData.price || '0')).toFixed(2)}
             </span>
           </div>
         </div>

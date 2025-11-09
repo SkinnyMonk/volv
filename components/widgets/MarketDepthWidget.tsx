@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { formatINR } from '@/lib/currencyFormatter';
 
 interface DepthLevel {
   price: number;
@@ -9,13 +10,13 @@ interface DepthLevel {
 }
 
 const generateMockDepth = (): { bids: DepthLevel[]; asks: DepthLevel[] } => {
-  const basePrice = 150.25;
+  const basePrice = 3745.25;
   const bids: DepthLevel[] = [];
   const asks: DepthLevel[] = [];
 
   for (let i = 1; i <= 8; i++) {
-    const bidPrice = basePrice - i * 0.05;
-    const askPrice = basePrice + i * 0.05;
+    const bidPrice = basePrice - i * 0.5;
+    const askPrice = basePrice + i * 0.5;
     const quantity = Math.floor(Math.random() * 5000) + 1000;
 
     bids.push({
@@ -46,8 +47,8 @@ export default function MarketDepthWidget() {
       {/* Header */}
       <div className="px-3 py-2 border-b border-white border-opacity-10">
         <div className="flex justify-between items-center">
-          <p className="text-white text-xs font-semibold">Market Depth - AAPL</p>
-          <span className="text-green-400 text-xs font-semibold">$150.25</span>
+          <p className="text-white text-xs font-semibold">Market Depth - TCS</p>
+          <span className="text-green-400 text-xs font-semibold">{formatINR(3745.25)}</span>
         </div>
       </div>
 
@@ -72,7 +73,7 @@ export default function MarketDepthWidget() {
                   
                   {/* Text content */}
                   <div className="relative z-10 w-full px-1 flex justify-between items-center text-xs">
-                    <span className="text-green-400 font-semibold">${bid.price.toFixed(2)}</span>
+                    <span className="text-green-400 font-semibold">{formatINR(bid.price)}</span>
                     <span className="text-gray-300">{bid.quantity}</span>
                   </div>
                 </div>
@@ -99,7 +100,7 @@ export default function MarketDepthWidget() {
                   {/* Text content */}
                   <div className="relative z-10 w-full px-1 flex justify-between items-center text-xs">
                     <span className="text-gray-300">{ask.quantity}</span>
-                    <span className="text-red-400 font-semibold">${ask.price.toFixed(2)}</span>
+                    <span className="text-red-400 font-semibold">{formatINR(ask.price)}</span>
                   </div>
                 </div>
               ))}

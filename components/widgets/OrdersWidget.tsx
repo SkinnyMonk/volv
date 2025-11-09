@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { CheckCircle, Clock, XCircle } from 'lucide-react';
+import { formatINR } from '@/lib/currencyFormatter';
 
 interface Order {
   id: string;
@@ -15,11 +16,11 @@ interface Order {
 
 const generateMockOrders = (): Order[] => {
   return [
-    { id: 'ORD001', symbol: 'AAPL', type: 'BUY', qty: 50, price: 150.25, status: 'FILLED', time: '09:30' },
-    { id: 'ORD002', symbol: 'MSFT', type: 'SELL', qty: 25, price: 420.50, status: 'PENDING', time: '10:15' },
-    { id: 'ORD003', symbol: 'GOOGL', type: 'BUY', qty: 30, price: 165.00, status: 'FILLED', time: '10:45' },
-    { id: 'ORD004', symbol: 'TSLA', type: 'BUY', qty: 15, price: 245.00, status: 'CANCELLED', time: '11:20' },
-    { id: 'ORD005', symbol: 'AMZN', type: 'SELL', qty: 40, price: 200.00, status: 'PENDING', time: '11:55' },
+    { id: 'ORD001', symbol: 'TCS', type: 'BUY', qty: 50, price: 3745.25, status: 'FILLED', time: '09:30' },
+    { id: 'ORD002', symbol: 'INFY', type: 'SELL', qty: 25, price: 2890.50, status: 'PENDING', time: '10:15' },
+    { id: 'ORD003', symbol: 'RELIANCE', type: 'BUY', qty: 30, price: 2925.00, status: 'FILLED', time: '10:45' },
+    { id: 'ORD004', symbol: 'HDFC', type: 'BUY', qty: 15, price: 2415.00, status: 'CANCELLED', time: '11:20' },
+    { id: 'ORD005', symbol: 'SBIN', type: 'SELL', qty: 40, price: 680.00, status: 'PENDING', time: '11:55' },
   ];
 };
 
@@ -85,7 +86,7 @@ export default function OrdersWidget() {
               </div>
               <div className="w-16 shrink-0 px-3 py-2 text-white font-semibold text-xs">{order.symbol}</div>
               <div className="w-12 shrink-0 px-3 py-2 text-gray-300 text-xs">{order.qty}</div>
-              <div className="w-16 shrink-0 px-3 py-2 text-gray-300 text-xs">${order.price.toFixed(2)}</div>
+              <div className="w-16 shrink-0 px-3 py-2 text-gray-300 text-xs">{formatINR(order.price)}</div>
               <div className="w-24 shrink-0 px-3 py-2 text-xs">
                 <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded w-fit ${getStatusColor(order.status)}`}>
                   {getStatusIcon(order.status)}

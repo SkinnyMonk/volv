@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { formatINR } from '@/lib/currencyFormatter';
 
 interface Position {
   symbol: string;
@@ -14,11 +15,11 @@ interface Position {
 
 const generateMockPositions = (): Position[] => {
   return [
-    { symbol: 'AAPL', qty: 100, avgPrice: 145.50, currentPrice: 150.32, pnl: 482, pnlPercent: 3.30 },
-    { symbol: 'MSFT', qty: 50, avgPrice: 420.00, currentPrice: 418.75, pnl: -62.5, pnlPercent: -0.30 },
-    { symbol: 'GOOGL', qty: 30, avgPrice: 160.00, currentPrice: 165.45, pnl: 163.5, pnlPercent: 3.41 },
-    { symbol: 'TSLA', qty: 25, avgPrice: 250.00, currentPrice: 240.60, pnl: -235, pnlPercent: -3.76 },
-    { symbol: 'AMZN', qty: 40, avgPrice: 195.00, currentPrice: 202.10, pnl: 284, pnlPercent: 3.64 },
+    { symbol: 'TCS', qty: 100, avgPrice: 3650.00, currentPrice: 3745.50, pnl: 9550, pnlPercent: 2.61 },
+    { symbol: 'INFY', qty: 50, avgPrice: 2905.00, currentPrice: 2890.25, pnl: -735, pnlPercent: -0.51 },
+    { symbol: 'RELIANCE', qty: 30, avgPrice: 2830.00, currentPrice: 2925.80, pnl: 2874, pnlPercent: 3.37 },
+    { symbol: 'HDFC', qty: 25, avgPrice: 2338.00, currentPrice: 2415.60, pnl: 1940, pnlPercent: 3.31 },
+    { symbol: 'SBIN', qty: 40, avgPrice: 642.00, currentPrice: 685.20, pnl: 1728, pnlPercent: 6.72 },
   ];
 };
 
@@ -55,7 +56,7 @@ export default function PositionsWidget() {
               {/* Symbol & Qty */}
               <div className="flex-1 min-w-0">
                 <p className="text-white text-xs font-semibold truncate">{position.symbol}</p>
-                <p className="text-gray-400 text-xs truncate">{position.qty} @ ${position.avgPrice.toFixed(2)}</p>
+                <p className="text-gray-400 text-xs truncate">{position.qty} @ {formatINR(position.avgPrice)}</p>
               </div>
 
               {/* P&L Display */}
@@ -84,7 +85,7 @@ export default function PositionsWidget() {
       {/* Footer Summary */}
       <div className="px-3 py-2 border-t border-white border-opacity-10 flex justify-between text-xs">
         <span className="text-gray-400">Total Value</span>
-        <span className="text-white font-semibold">$98,540.25</span>
+        <span className="text-white font-semibold">{formatINR(9000000)}</span>
       </div>
     </div>
   );

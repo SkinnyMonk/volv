@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ReactNode, useEffect } from 'react';
+import { useState, useRef, ReactNode, useEffect, useMemo } from 'react';
 
 interface ResizableWidgetContainerProps {
   widgets: Array<{
@@ -17,14 +17,23 @@ export default function ResizableWidgetContainer({
   gap = 2,
   className = '',
 }: ResizableWidgetContainerProps) {
-  // Initialize widths based on current widget count
-  const initialWidths = widgets.map(() => 100 / widgets.length);
+  // Initialize widths based on current widget count - use useMemo to ensure consistency
+  const initialWidths = useMemo(() => {
+    const count = widgets.length;
+    return count > 0 ? Array(count).fill(100 / count) : [];
+  }, [widgets.length]);
+
   const [widths, setWidths] = useState<number[]>(initialWidths);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [draggedBorderIndex, setDraggedBorderIndex] = useState<number | null>(null);
   const startXRef = useRef(0);
   const startWidthsRef = useRef<number[]>([]);
+
+  // Reset widths when widget count changes
+  useEffect(() => {
+    setWidths(initialWidths);
+  }, [initialWidths]);
 
   const handleMouseDownBorder = (index: number, e: React.MouseEvent) => {
     e.preventDefault();
@@ -45,7 +54,11 @@ export default function ResizableWidgetContainer({
 
       const deltaX = e.clientX - startXRef.current;
       const containerWidth = containerRef.current.offsetWidth;
-      const deltaPercent = (deltaX / containerWidth) * 100;
+      
+      // Account for gaps: total gap space = gap * (widgets.length - 1)
+      const totalGapSpace = gap * (widgets.length - 1);
+      const availableWidth = containerWidth - totalGapSpace;
+      const deltaPercent = (deltaX / availableWidth) * 100;
 
       const newWidths = [...startWidthsRef.current];
       const leftIndex = draggedBorderIndex;
@@ -78,14 +91,24 @@ export default function ResizableWidgetContainer({
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUpGlobal);
     };
-  }, [isDragging, draggedBorderIndex]);
+  }, [isDragging, draggedBorderIndex, widgets.length, gap]);
 
   return (
     <div ref={containerRef} className={`flex h-full w-full ${className}`} style={{ gap: `${gap}px` }}>
       {widgets.map((widget, index) => (
-        <div key={widget.id} className="flex items-stretch shrink-0 relative group" style={{ width: `${widths[index]}%` }}>
+        <div 
+          key={widget.id} 
+          className="flex items-stretch relative group" 
+          style={{ 
+            width: `${widths[index] || 100 / widgets.length}%`,
+            minWidth: '10%',
+            flexShrink: 1,
+            flexGrow: 0,
+            flexBasis: 'auto',
+          }}
+        >
           {/* Widget Content */}
-          <div className="w-full h-full flex-1">{widget.content}</div>
+          <div className="w-full h-full overflow-hidden">{widget.content}</div>
 
           {/* Resizable Border (only show if not the last widget) */}
           {index < widgets.length - 1 && (
@@ -97,6 +120,7 @@ export default function ResizableWidgetContainer({
               style={{
                 marginLeft: `${gap / 2}px`,
                 marginRight: `${gap / 2}px`,
+                flexShrink: 0,
               }}
             />
           )}

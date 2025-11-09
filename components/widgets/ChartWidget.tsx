@@ -1,20 +1,21 @@
 'use client';
 
 import { useMemo } from 'react';
+import { formatINR } from '@/lib/currencyFormatter';
 
-// Mock OHLC data
+// Mock OHLC data for Indian stocks at realistic prices
 const generateMockChartData = () => {
   const data = [];
-  let price = 100;
+  let price = 3700;
   
   for (let i = 0; i < 50; i++) {
-    const change = (Math.random() - 0.5) * 2;
+    const change = (Math.random() - 0.5) * 30;
     price += change;
     data.push({
       time: i.toString().padStart(2, '0'),
-      open: price - Math.random(),
-      high: price + Math.random() * 1.5,
-      low: price - Math.random() * 1.5,
+      open: price - Math.random() * 10,
+      high: price + Math.random() * 15,
+      low: price - Math.random() * 15,
       close: price,
       volume: Math.floor(Math.random() * 10000) + 5000,
     });
@@ -52,11 +53,11 @@ export default function ChartWidget() {
       <div className="px-4 pt-3 pb-2 border-b border-white border-opacity-10 bg-slate-900">
         <div className="flex justify-between items-center">
           <div>
-            <p className="text-white text-sm font-semibold">AAPL</p>
-            <p className="text-gray-300 text-xs">Apple Inc.</p>
+            <p className="text-white text-sm font-semibold">TCS</p>
+            <p className="text-gray-300 text-xs">Tata Consultancy Services</p>
           </div>
           <div className="text-right">
-            <p className="text-white text-lg font-bold">${chartData[chartData.length - 1]?.close.toFixed(2)}</p>
+            <p className="text-white text-lg font-bold">{formatINR(chartData[chartData.length - 1]?.close)}</p>
             <p className="text-green-400 text-xs">+2.45%</p>
           </div>
         </div>
@@ -87,7 +88,7 @@ export default function ChartWidget() {
                   fill="#9CA3AF"
                   textAnchor="end"
                 >
-                  ${price.toFixed(0)}
+                  {formatINR(price, 0)}
                 </text>
               </g>
             );

@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { Star, TrendingUp, TrendingDown } from 'lucide-react';
+import { formatINR } from '@/lib/currencyFormatter';
 
 interface WatchlistItem {
   symbol: string;
@@ -14,12 +15,12 @@ interface WatchlistItem {
 
 const generateMockWatchlist = (): WatchlistItem[] => {
   return [
-    { symbol: 'AAPL', price: 150.32, change: 3.82, changePercent: 2.61, volume: 5200000, isFavorite: true },
-    { symbol: 'MSFT', price: 418.75, change: -1.25, changePercent: -0.30, volume: 3100000, isFavorite: true },
-    { symbol: 'GOOGL', price: 165.45, change: 5.45, changePercent: 3.41, volume: 1800000, isFavorite: false },
-    { symbol: 'AMZN', price: 202.10, change: 7.10, changePercent: 3.64, volume: 2200000, isFavorite: false },
-    { symbol: 'TSLA', price: 240.60, change: -9.40, changePercent: -3.76, volume: 4500000, isFavorite: true },
-    { symbol: 'NVDA', price: 145.80, change: 8.50, changePercent: 6.19, volume: 3400000, isFavorite: false },
+    { symbol: 'TCS', price: 3745.50, change: 85.75, changePercent: 2.35, volume: 5200000, isFavorite: true },
+    { symbol: 'INFY', price: 2890.25, change: -15.50, changePercent: -0.53, volume: 3100000, isFavorite: true },
+    { symbol: 'RELIANCE', price: 2925.80, change: 95.30, changePercent: 3.37, volume: 1800000, isFavorite: false },
+    { symbol: 'HDFC', price: 2415.60, change: 78.10, changePercent: 3.34, volume: 2200000, isFavorite: false },
+    { symbol: 'ICICIBANK', price: 1088.45, change: -38.90, changePercent: -3.45, volume: 4500000, isFavorite: true },
+    { symbol: 'SBIN', price: 685.20, change: 42.30, changePercent: 6.58, volume: 3400000, isFavorite: false },
   ];
 };
 
@@ -60,7 +61,7 @@ export default function MarketWatchWidget() {
                 </button>
               </div>
               <div className="w-16 shrink-0 px-3 py-2 text-white font-semibold">{item.symbol}</div>
-              <div className="w-16 shrink-0 px-3 py-2 text-white font-semibold">${item.price.toFixed(2)}</div>
+              <div className="w-16 shrink-0 px-3 py-2 text-white font-semibold">{formatINR(item.price)}</div>
               <div className={`w-16 shrink-0 px-3 py-2 font-semibold flex items-center gap-1 ${
                 item.change >= 0 ? 'text-green-400' : 'text-red-400'
               }`}>
