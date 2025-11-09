@@ -16,8 +16,8 @@ export default function Sidebar() {
   return (
     <>
       {/* Sidebar */}
-      <div
-        className={`fixed left-0 top-0 h-screen bg-gray-950 border-r border-gray-800 transition-all duration-300 ease-out z-40 flex flex-col items-center pt-4 ${
+      <aside
+        className={`bg-gray-950 border-r border-gray-800 transition-all duration-300 ease-out flex flex-col items-center pt-4 h-full shrink-0 ${
           isOpen ? 'w-48' : 'w-20'
         }`}
       >
@@ -84,15 +84,7 @@ export default function Sidebar() {
             );
           })}
         </nav>
-      </div>
-
-      {/* Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-30"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      </aside>
     </>
   );
 }

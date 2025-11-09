@@ -78,6 +78,7 @@ export default function LayoutPage() {
   const [isOrderFormOpen, setIsOrderFormOpen] = useState(false);
   const [layoutInitialized, setLayoutInitialized] = useState(false);
   const initializedRef = useRef(false);
+  const addWidgetButtonRef = useRef<HTMLButtonElement>(null);
 
   // Load layout when layoutId changes
   useEffect(() => {
@@ -238,12 +239,13 @@ export default function LayoutPage() {
 
 
   return (
-    <main className="w-screen h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
+    <main className="bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col h-full">
       {/* Layout Tabs with Add Widget Button */}
       <LayoutTabs 
         activeLayoutId={layoutIdParam || undefined}
         showAddWidget={layoutInitialized}
         onAddWidget={() => setOpenWidget(true)}
+        addWidgetButtonRef={addWidgetButtonRef}
       />
 
     
@@ -259,8 +261,8 @@ export default function LayoutPage() {
               onClick={() => setOpenWidget(false)}
             />
             
-            {/* Modal */}
-            <div className="absolute top-32 right-8 bg-slate-800 border border-gray-600 rounded-lg shadow-2xl p-6 w-96 z-50">
+            {/* Modal - positioned below the Add Widget button */}
+            <div className="absolute top-full left-auto right-8 mt-2 bg-slate-800 border border-gray-600 rounded-lg shadow-2xl p-6 w-96 z-50">
               <div className="grid grid-cols-3 gap-6">
                 {availableWidgets.map((widget) => (
                   <button
@@ -313,7 +315,7 @@ export default function LayoutPage() {
         {gridWidgets.length === 0 && !layoutInitialized ? (
           <LayoutTemplateSelector onSelectTemplate={handleSelectTemplate} />
         ) : gridWidgets.length === 0 && layoutInitialized ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center justify-center w-full h-full">
             <p className="text-gray-400 text-lg">Select a widget from Add Widget button to get started</p>
           </div>
         ) : (

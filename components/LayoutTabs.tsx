@@ -10,9 +10,10 @@ interface LayoutTabsProps {
   activeLayoutId?: string;
   onAddWidget?: () => void;
   showAddWidget?: boolean;
+  addWidgetButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
-export default function LayoutTabs({ activeLayoutId, onAddWidget, showAddWidget = false }: LayoutTabsProps) {
+export default function LayoutTabs({ activeLayoutId, onAddWidget, showAddWidget = false, addWidgetButtonRef }: LayoutTabsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [layouts, setLayouts] = useState<CustomLayout[]>(() => {
@@ -166,6 +167,7 @@ export default function LayoutTabs({ activeLayoutId, onAddWidget, showAddWidget 
       {/* Add Widget Button - Only show if layout is initialized */}
       {showAddWidget && currentActiveId && (
         <button
+          ref={addWidgetButtonRef}
           onClick={() => onAddWidget?.()}
           className="ml-auto px-4 py-2 text-gray-400 border border-gray-600 hover:border-gray-400 hover:text-white rounded transition-all duration-200"
           title="Add widget"
