@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import React, { Suspense } from 'react';
 import "./globals.css";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -23,8 +24,10 @@ export default function RootLayout({
         <div className="flex flex-1 min-h-0">
           <Sidebar />
           <main className="flex-1 overflow-auto">
-            {children}
-          </main>
+              <Suspense fallback={<div className="w-full h-full" />}>
+                {children}
+              </Suspense>
+            </main>
         </div>
       </body>
     </html>
