@@ -5,9 +5,11 @@ let authToken: string | null = null;
 export function setAuthToken(token: string | null) {
   authToken = token;
   if (token) {
-    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    v1Instance.defaults.headers.common['x-authorization-token'] = token;
+    v4Instance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
-    delete axiosInstance.defaults.headers.common['Authorization'];
+    delete v1Instance.defaults.headers.common['x-authorization-token'];
+    delete v4Instance.defaults.headers.common['Authorization'];
   }
 }
 
@@ -15,8 +17,9 @@ export function getAuthToken(): string | null {
   return authToken;
 }
 
-const axiosInstance: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://zyro.basanonline.com/api/v4',
+// API v1 instance (for positions, orders, etc.)
+const v1Instance: AxiosInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_V1_BASE_URL || 'https://zyro.basanonline.com/api/v1',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -24,8 +27,35 @@ const axiosInstance: AxiosInstance = axios.create({
   },
 });
 
-// Request interceptor to add auth token
-axiosInstance.interceptors.request.use(
+// API v4 instance (for auth)
+const v4Instance: AxiosInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_V4_BASE_URL || 'https://zyro.basanonline.com/api/v4',
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+    'x-device-type': 'web',
+  },
+});
+
+// Request interceptor for v1
+v1Instance.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    if (authToken) {
+      config.headers['x-authorization-token'] = authToken;
+      console.log(`[axios v1] Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, {
+        token: authToken.substring(0, 20) + '...',
+        params: config.params,
+      });
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Request interceptor for v4
+v4Instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (authToken) {
       config.headers.Authorization = `Bearer ${authToken}`;
@@ -37,17 +67,15 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle errors
-axiosInstance.interceptors.response.use(
+// Response interceptor for v1
+v1Instance.interceptors.response.use(
   (response) => {
     return response;
   },
   (error) => {
     if (error.response?.status === 401) {
-      // Unauthorized - clear token and redirect to login
       authToken = null;
-      delete axiosInstance.defaults.headers.common['Authorization'];
-      // Redirect to login if not already there
+      delete v1Instance.defaults.headers.common['x-authorization-token'];
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth')) {
         window.location.href = '/auth/login';
       }
@@ -56,4 +84,26 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export default axiosInstance;
+// Response interceptor for v4
+v4Instance.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      authToken = null;
+      delete v4Instance.defaults.headers.common['Authorization'];
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth')) {
+        window.location.href = '/auth/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Export instances
+export const apiV1 = v1Instance;
+export const apiV4 = v4Instance;
+
+// Default export for backwards compatibility
+export default v4Instance;
