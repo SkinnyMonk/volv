@@ -1,90 +1,173 @@
 'use client';
 
-import { useMemo } from 'react';
-import { Star, TrendingUp, TrendingDown } from 'lucide-react';
-import { formatINR } from '@/lib/currencyFormatter';
-
-interface WatchlistItem {
-  symbol: string;
-  price: number;
-  change: number;
-  changePercent: number;
-  volume: number;
-  isFavorite: boolean;
-}
-
-const generateMockWatchlist = (): WatchlistItem[] => {
-  return [
-    { symbol: 'TCS', price: 3745.50, change: 85.75, changePercent: 2.35, volume: 5200000, isFavorite: true },
-    { symbol: 'INFY', price: 2890.25, change: -15.50, changePercent: -0.53, volume: 3100000, isFavorite: true },
-    { symbol: 'RELIANCE', price: 2925.80, change: 95.30, changePercent: 3.37, volume: 1800000, isFavorite: false },
-    { symbol: 'HDFC', price: 2415.60, change: 78.10, changePercent: 3.34, volume: 2200000, isFavorite: false },
-    { symbol: 'ICICIBANK', price: 1088.45, change: -38.90, changePercent: -3.45, volume: 4500000, isFavorite: true },
-    { symbol: 'SBIN', price: 685.20, change: 42.30, changePercent: 6.58, volume: 3400000, isFavorite: false },
-  ];
-};
+import { useMarketWatches } from '@/lib/hooks/useMarketWatches';
+import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useRef } from 'react';
 
 export default function MarketWatchWidget() {
-  const watchlist = useMemo(() => generateMockWatchlist(), []);
+  const { marketWatches, selectedWatch, selectedWatchId, setSelectedWatchId, loading, error } = useMarketWatches();
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const toggleFavorite = (token: string | number) => {
+    const tokenStr = String(token);
+    const newFavorites = new Set(favorites);
+    if (newFavorites.has(tokenStr)) {
+      newFavorites.delete(tokenStr);
+    } else {
+      newFavorites.add(tokenStr);
+    }
+    setFavorites(newFavorites);
+  };
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 200;
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-red-950 bg-opacity-20 border border-red-800 rounded-lg p-4">
+        <p className="text-red-300 text-xs">Error: {error}</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+        <span className="ml-2 text-gray-400 text-xs">Loading...</span>
+      </div>
+    );
+  }
+
+  if (marketWatches.length === 0) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+        No market watches found
+      </div>
+    );
+  }
+
+  const instruments = selectedWatch?.instruments || [];
 
   return (
     <div className="w-full h-full flex flex-col min-h-0">
-      {/* Header */}
-      <div className="px-3 py-2 border-b border-white border-opacity-10 shrink-0">
-        <p className="text-white text-xs font-semibold truncate">Market Watch</p>
+      {/* Market Watch Tabs */}
+      <div className="relative flex items-center border-b border-white border-opacity-10 shrink-0 bg-gray-900 bg-opacity-50">
+        {/* Left Scroll Button */}
+        <button
+          onClick={() => scroll('left')}
+          className="absolute left-0 z-10 p-1 bg-gray-900 hover:bg-gray-800 transition"
+        >
+          <ChevronLeft size={14} className="text-gray-400" />
+        </button>
+
+        {/* Tabs Container */}
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 overflow-x-auto overflow-y-hidden scroll-smooth scrollbar-hide pl-6 pr-6"
+        >
+          <div className="flex gap-0">
+            {marketWatches.map((watch) => (
+              <button
+                key={watch.id}
+                onClick={() => setSelectedWatchId(watch.id)}
+                className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors border-b-2 ${
+                  selectedWatchId === watch.id
+                    ? 'text-white border-blue-500'
+                    : 'text-gray-400 border-transparent hover:text-gray-300'
+                }`}
+              >
+                {watch.name}
+                <span className="text-xs text-gray-500 ml-1">({watch.instruments.length})</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Scroll Button */}
+        <button
+          onClick={() => scroll('right')}
+          className="absolute right-0 z-10 p-1 bg-gray-900 hover:bg-gray-800 transition"
+        >
+          <ChevronRight size={14} className="text-gray-400" />
+        </button>
       </div>
 
-      {/* Watchlist Table - Fully responsive */}
-      <div className="flex-1 overflow-x-auto overflow-y-auto min-w-0">
-        <div className="min-w-full text-xs">
-          {/* Header Row */}
-          <div className="sticky top-0 flex bg-slate-700 border-b border-white border-opacity-10 shrink-0">
-            <div className="flex-1 min-w-12 px-2 py-2 text-gray-400 font-semibold border-r border-white border-opacity-5 text-center">★</div>
-            <div className="flex-1 min-w-16 px-2 py-2 text-gray-400 font-semibold border-r border-white border-opacity-5">Sym</div>
-            <div className="flex-1 min-w-16 px-2 py-2 text-gray-400 font-semibold border-r border-white border-opacity-5 text-right">Price</div>
-            <div className="flex-1 min-w-16 px-2 py-2 text-gray-400 font-semibold border-r border-white border-opacity-5 text-right">Chg</div>
-            <div className="flex-1 min-w-12 px-2 py-2 text-gray-400 font-semibold text-right">%</div>
-          </div>
+      {/* Selected Watch Header */}
+      {selectedWatch && (
+        <div className="px-3 py-2 border-b border-white border-opacity-10 shrink-0 bg-gray-800 bg-opacity-30">
+          <p className="text-white text-xs font-semibold">{selectedWatch.name}</p>
+          <p className="text-gray-400 text-xs mt-0.5">{instruments.length} instruments</p>
+        </div>
+      )}
 
-          {/* Data Rows */}
-          {watchlist.map((item) => (
-            <div
-              key={item.symbol}
-              className="flex border-b border-white border-opacity-5 hover:bg-slate-700 hover:bg-opacity-30 transition"
-            >
-              <div className="flex-1 min-w-12 px-2 py-2 flex items-center justify-center shrink-0">
-                <button className="p-0.5 hover:opacity-80 transition">
+      {/* Instruments List */}
+      {instruments.length > 0 ? (
+        <div className="flex-1 overflow-x-auto overflow-y-auto min-w-0">
+          <div className="space-y-1 p-2">
+            {instruments.map((instrument) => (
+              <div
+                key={instrument.id}
+                className="flex items-center gap-2 p-2 rounded hover:bg-slate-700 hover:bg-opacity-30 transition border border-white border-opacity-5"
+              >
+                {/* Favorite Button */}
+                <button
+                  onClick={() => toggleFavorite(instrument.token)}
+                  className="p-0.5 hover:opacity-80 transition shrink-0"
+                >
                   <Star
-                    size={12}
-                    className={item.isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}
+                    size={14}
+                    className={
+                      favorites.has(String(instrument.token))
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-gray-400'
+                    }
                   />
                 </button>
+
+                {/* Instrument Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-1">
+                    <p className="text-white text-xs font-semibold truncate">
+                      {instrument.display_name}
+                    </p>
+                    <p className="text-gray-500 text-xs truncate">
+                      {instrument.short_name}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 text-gray-500 text-xs mt-0.5">
+                    <span className="truncate">{instrument.description}</span>
+                    <span className="shrink-0 font-medium text-gray-400">{instrument.exchange}</span>
+                  </div>
+                </div>
+
+                {/* Trading Symbol */}
+                <div className="text-right shrink-0">
+                  <p className="text-white text-xs font-semibold">
+                    {instrument.trading_symbol}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-16 px-2 py-2 text-white font-semibold truncate">{item.symbol}</div>
-              <div className="flex-1 min-w-16 px-2 py-2 text-white font-semibold text-right truncate">{formatINR(item.price)}</div>
-              <div className={`flex-1 min-w-16 px-2 py-2 font-semibold flex items-center justify-end gap-1 ${
-                item.change >= 0 ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {item.change >= 0 ? (
-                  <TrendingUp size={10} className="shrink-0" />
-                ) : (
-                  <TrendingDown size={10} className="shrink-0" />
-                )}
-                <span className="truncate">{item.change >= 0 ? '+' : ''}{item.change.toFixed(2)}</span>
-              </div>
-              <div className={`flex-1 min-w-12 px-2 py-2 font-semibold text-right truncate ${
-                item.changePercent >= 0 ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {item.changePercent >= 0 ? '+' : ''}{item.changePercent.toFixed(2)}%
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex-1 flex items-center justify-center text-gray-400 text-xs">
+          No instruments in {selectedWatch?.name}
+        </div>
+      )}
 
       {/* Footer */}
       <div className="px-3 py-2 border-t border-white border-opacity-10 bg-slate-700 bg-opacity-50 shrink-0">
-        <p className="text-gray-400 text-xs truncate">{watchlist.length} symbols</p>
+        <p className="text-gray-400 text-xs truncate">{instruments.length} symbols in {selectedWatch?.name}</p>
       </div>
     </div>
   );

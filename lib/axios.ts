@@ -26,6 +26,15 @@ const v1Instance: AxiosInstance = axios.create({
     'x-device-type': 'web',
   },
 });
+const v3Instance: AxiosInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_V3_BASE_URL || 'https://zyro.basanonline.com/api/v3',
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+    'x-device-type': 'web',
+  },
+});
+
 
 // API v4 instance (for auth)
 const v4Instance: AxiosInstance = axios.create({
@@ -43,6 +52,21 @@ v1Instance.interceptors.request.use(
     if (authToken) {
       config.headers['x-authorization-token'] = authToken;
       console.log(`[axios v1] Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, {
+        token: authToken.substring(0, 20) + '...',
+        params: config.params,
+      });
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+v3Instance.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    if (authToken) {
+      config.headers['x-authorization-token'] = authToken;
+      console.log(`[axios v3] Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, {
         token: authToken.substring(0, 20) + '...',
         params: config.params,
       });
@@ -103,6 +127,8 @@ v4Instance.interceptors.response.use(
 
 // Export instances
 export const apiV1 = v1Instance;
+export const apiV3 = v3Instance;
+
 export const apiV4 = v4Instance;
 
 // Default export for backwards compatibility
