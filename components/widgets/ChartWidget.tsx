@@ -48,24 +48,24 @@ export default function ChartWidget() {
   const candleSpacing = 100 / chartData.length;
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col min-h-0">
       {/* Chart Header */}
-      <div className="px-4 pt-3 pb-2 border-b border-white border-opacity-10 bg-slate-900">
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="text-white text-sm font-semibold">TCS</p>
-            <p className="text-gray-300 text-xs">Tata Consultancy Services</p>
+      <div className="px-3 sm:px-4 pt-2 sm:pt-3 pb-1 sm:pb-2 border-b border-white border-opacity-10 bg-slate-900 shrink-0">
+        <div className="flex justify-between items-center gap-2">
+          <div className="min-w-0">
+            <p className="text-white text-xs sm:text-sm font-semibold truncate">TCS</p>
+            <p className="text-gray-300 text-xs hidden sm:block">Tata Consultancy Services</p>
           </div>
-          <div className="text-right">
-            <p className="text-white text-lg font-bold">{formatINR(chartData[chartData.length - 1]?.close)}</p>
+          <div className="text-right shrink-0">
+            <p className="text-white text-sm sm:text-lg font-bold">{formatINR(chartData[chartData.length - 1]?.close)}</p>
             <p className="text-green-400 text-xs">+2.45%</p>
           </div>
         </div>
       </div>
 
-      {/* Chart Container - Takes full remaining height */}
-      <div className="flex-1 p-4 w-full relative">
-        <svg width="100%" height="100%" viewBox={`0 0 100 ${chartHeight}`} preserveAspectRatio="none" className="absolute inset-0 p-4">
+      {/* Chart Container - Takes full remaining height with responsive sizing */}
+      <div className="flex-1 p-2 sm:p-4 w-full relative min-h-0 overflow-hidden">
+        <svg width="100%" height="100%" viewBox={`0 0 100 ${chartHeight}`} preserveAspectRatio="none" className="absolute inset-0 p-2 sm:p-4">
           {/* Grid Lines for Price */}
           {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
             const price = minPrice + priceRange * ratio;
@@ -80,13 +80,14 @@ export default function ChartWidget() {
                   strokeWidth="0.3"
                   opacity="0.3"
                 />
-                {/* Price Labels */}
+                {/* Price Labels - Only show on larger screens */}
                 <text
                   x="99"
                   y={getNormalizedY(price) + 1.5}
-                  fontSize="2"
+                  fontSize="1.5"
                   fill="#9CA3AF"
                   textAnchor="end"
+                  className="hidden sm:block"
                 >
                   {formatINR(price, 0)}
                 </text>
@@ -169,12 +170,12 @@ export default function ChartWidget() {
           />
         </svg>
 
-        {/* Time Labels at Bottom */}
-        <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4 text-xs text-gray-400 h-6">
+        {/* Time Labels at Bottom - Responsive */}
+        <div className="absolute bottom-0 left-0 right-0 flex justify-between px-2 sm:px-4 text-xs text-gray-400 h-4 sm:h-6">
           {chartData.map((candle, idx) => {
             if (idx % Math.ceil(chartData.length / 5) === 0) {
               return (
-                <div key={idx} className="text-center">
+                <div key={idx} className="text-center text-xs">
                   {candle.time}:00
                 </div>
               );
@@ -184,27 +185,27 @@ export default function ChartWidget() {
         </div>
       </div>
 
-      {/* Stats Footer */}
-      <div className="px-4 py-2 border-t border-white border-opacity-10 bg-slate-900 grid grid-cols-5 gap-2 text-xs">
-        <div>
-          <p className="text-gray-400">O</p>
-          <p className="text-white font-semibold">{chartData[0]?.open.toFixed(2)}</p>
+      {/* Stats Footer - Responsive Grid */}
+      <div className="px-2 sm:px-4 py-1 sm:py-2 border-t border-white border-opacity-10 bg-slate-900 grid grid-cols-5 gap-1 sm:gap-2 text-xs shrink-0">
+        <div className="truncate">
+          <p className="text-gray-400 text-xs">O</p>
+          <p className="text-white font-semibold text-xs truncate">{chartData[0]?.open.toFixed(2)}</p>
         </div>
-        <div>
-          <p className="text-gray-400">H</p>
-          <p className="text-white font-semibold">{maxPrice.toFixed(2)}</p>
+        <div className="truncate">
+          <p className="text-gray-400 text-xs">H</p>
+          <p className="text-white font-semibold text-xs truncate">{maxPrice.toFixed(2)}</p>
         </div>
-        <div>
-          <p className="text-gray-400">L</p>
-          <p className="text-white font-semibold">{minPrice.toFixed(2)}</p>
+        <div className="truncate">
+          <p className="text-gray-400 text-xs">L</p>
+          <p className="text-white font-semibold text-xs truncate">{minPrice.toFixed(2)}</p>
         </div>
-        <div>
-          <p className="text-gray-400">C</p>
-          <p className="text-white font-semibold">{chartData[chartData.length - 1]?.close.toFixed(2)}</p>
+        <div className="truncate">
+          <p className="text-gray-400 text-xs">C</p>
+          <p className="text-white font-semibold text-xs truncate">{chartData[chartData.length - 1]?.close.toFixed(2)}</p>
         </div>
-        <div>
-          <p className="text-gray-400">V</p>
-          <p className="text-white font-semibold">{(maxVolume / 1000000).toFixed(1)}M</p>
+        <div className="truncate">
+          <p className="text-gray-400 text-xs">V</p>
+          <p className="text-white font-semibold text-xs truncate">{(maxVolume / 1000000).toFixed(1)}M</p>
         </div>
       </div>
     </div>

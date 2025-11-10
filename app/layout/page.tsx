@@ -193,6 +193,15 @@ export default function LayoutPage() {
     setGridWidgets(filtered);
   };
 
+  const handleReorderWidgets = (newWidgetIds: string[]) => {
+    // Reorder gridWidgets based on the new order of IDs
+    const reorderedWidgets = newWidgetIds
+      .map((id) => gridWidgets.find((w) => w.instanceId === id))
+      .filter((w) => w !== undefined) as GridWidget[];
+    
+    setGridWidgets(reorderedWidgets);
+  };
+
   const handleSelectTemplate = (selectedTemplateId: number) => {
     // Get the template config
     const widgetsToAdd = templateConfigs[selectedTemplateId] || [];
@@ -327,7 +336,7 @@ export default function LayoutPage() {
               content: (
                 <div className="rounded-lg shadow-lg flex flex-col relative group hover:shadow-xl transition user-select-none overflow-hidden h-full bg-slate-800 border border-gray-700">
                   {/* Header Section */}
-                  <div className="h-12 border-b border-white border-opacity-10 flex items-center justify-between px-4 bg-slate-900">
+                  <div className="h-12 border-b border-white border-opacity-10 flex items-center justify-between px-4 bg-slate-900 cursor-grab active:cursor-grabbing">
                     <p className="text-white font-semibold text-sm pointer-events-none">{widget.name}</p>
                     
                     {/* Remove Button */}
@@ -346,6 +355,7 @@ export default function LayoutPage() {
                 </div>
               ),
             }))}
+            onReorderWidgets={handleReorderWidgets}
           />
         )}
       </div>

@@ -50,24 +50,24 @@ export default function OrdersWidget() {
   const orders = useMemo(() => generateMockOrders(), []);
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col min-h-0">
       {/* Header */}
-      <div className="px-3 py-2 border-b border-white border-opacity-10 bg-slate-900">
-        <p className="text-white text-xs font-semibold">Recent Orders</p>
+      <div className="px-3 py-2 border-b border-white border-opacity-10 bg-slate-900 shrink-0">
+        <p className="text-white text-xs font-semibold truncate">Recent Orders</p>
       </div>
 
-      {/* Orders List with horizontal scroll */}
-      <div className="flex-1 overflow-x-auto overflow-y-auto">
-        <div className="min-w-max text-xs">
+      {/* Orders List with horizontal scroll - Fully responsive */}
+      <div className="flex-1 overflow-x-auto overflow-y-auto min-w-0">
+        <div className="min-w-full text-xs">
           {/* Header Row */}
-          <div className="sticky top-0 flex bg-slate-700 border-b border-white border-opacity-10">
-            <div className="w-16 shrink-0 px-3 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">ID</div>
-            <div className="w-20 shrink-0 px-3 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">Type</div>
-            <div className="w-16 shrink-0 px-3 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">Sym</div>
-            <div className="w-12 shrink-0 px-3 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">Qty</div>
-            <div className="w-16 shrink-0 px-3 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">Price</div>
-            <div className="w-24 shrink-0 px-3 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">Status</div>
-            <div className="w-12 shrink-0 px-3 py-2 text-gray-400 font-semibold text-xs">Time</div>
+          <div className="sticky top-0 flex bg-slate-700 border-b border-white border-opacity-10 shrink-0">
+            <div className="flex-1 min-w-12 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">ID</div>
+            <div className="flex-1 min-w-16 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">Type</div>
+            <div className="flex-1 min-w-12 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">Sym</div>
+            <div className="flex-1 min-w-12 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5 text-right">Qty</div>
+            <div className="flex-1 min-w-16 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5 text-right">Price</div>
+            <div className="flex-1 min-w-20 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5 text-center">Status</div>
+            <div className="flex-1 min-w-10 px-2 py-2 text-gray-400 font-semibold text-xs">Time</div>
           </div>
 
           {/* Data Rows */}
@@ -76,24 +76,24 @@ export default function OrdersWidget() {
               key={order.id}
               className="flex border-b border-white border-opacity-5 hover:bg-slate-700 hover:bg-opacity-30 transition"
             >
-              <div className="w-16 shrink-0 px-3 py-2 text-gray-300 text-xs">{order.id}</div>
-              <div className="w-20 shrink-0 px-3 py-2 text-xs">
-                <div className={`px-1.5 py-0.5 rounded text-xs font-semibold w-fit ${
+              <div className="flex-1 min-w-12 px-2 py-2 text-gray-300 text-xs truncate">{order.id}</div>
+              <div className="flex-1 min-w-16 px-2 py-2 text-xs">
+                <div className={`px-1.5 py-0.5 rounded text-xs font-semibold w-fit truncate ${
                   order.type === 'BUY' ? 'bg-green-900 bg-opacity-30 text-green-400' : 'bg-red-900 bg-opacity-30 text-red-400'
                 }`}>
                   {order.type}
                 </div>
               </div>
-              <div className="w-16 shrink-0 px-3 py-2 text-white font-semibold text-xs">{order.symbol}</div>
-              <div className="w-12 shrink-0 px-3 py-2 text-gray-300 text-xs">{order.qty}</div>
-              <div className="w-16 shrink-0 px-3 py-2 text-gray-300 text-xs">{formatINR(order.price)}</div>
-              <div className="w-24 shrink-0 px-3 py-2 text-xs">
+              <div className="flex-1 min-w-12 px-2 py-2 text-white font-semibold text-xs truncate">{order.symbol}</div>
+              <div className="flex-1 min-w-12 px-2 py-2 text-gray-300 text-xs text-right">{order.qty}</div>
+              <div className="flex-1 min-w-16 px-2 py-2 text-gray-300 text-xs text-right truncate">{formatINR(order.price)}</div>
+              <div className="flex-1 min-w-20 px-2 py-2 text-xs flex items-center justify-center">
                 <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded w-fit ${getStatusColor(order.status)}`}>
                   {getStatusIcon(order.status)}
-                  <span className="text-xs font-medium">{order.status}</span>
+                  <span className="text-xs font-medium truncate">{order.status}</span>
                 </div>
               </div>
-              <div className="w-12 shrink-0 px-3 py-2 text-gray-400 text-xs">{order.time}</div>
+              <div className="flex-1 min-w-10 px-2 py-2 text-gray-400 text-xs">{order.time}</div>
             </div>
           ))}
         </div>

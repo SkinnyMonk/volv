@@ -28,22 +28,22 @@ export default function MarketWatchWidget() {
   const watchlist = useMemo(() => generateMockWatchlist(), []);
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col min-h-0">
       {/* Header */}
-      <div className="px-3 py-2 border-b border-white border-opacity-10">
-        <p className="text-white text-xs font-semibold">Market Watch</p>
+      <div className="px-3 py-2 border-b border-white border-opacity-10 shrink-0">
+        <p className="text-white text-xs font-semibold truncate">Market Watch</p>
       </div>
 
-      {/* Watchlist Table */}
-      <div className="flex-1 overflow-x-auto overflow-y-auto">
-        <div className="min-w-max text-xs">
+      {/* Watchlist Table - Fully responsive */}
+      <div className="flex-1 overflow-x-auto overflow-y-auto min-w-0">
+        <div className="min-w-full text-xs">
           {/* Header Row */}
-          <div className="sticky top-0 flex bg-slate-700 border-b border-white border-opacity-10">
-            <div className="w-16 shrink-0 px-3 py-2 text-gray-400 font-semibold border-r border-white border-opacity-5">Star</div>
-            <div className="w-16 shrink-0 px-3 py-2 text-gray-400 font-semibold border-r border-white border-opacity-5">Symbol</div>
-            <div className="w-16 shrink-0 px-3 py-2 text-gray-400 font-semibold border-r border-white border-opacity-5">Price</div>
-            <div className="w-16 shrink-0 px-3 py-2 text-gray-400 font-semibold border-r border-white border-opacity-5">Change</div>
-            <div className="w-16 shrink-0 px-3 py-2 text-gray-400 font-semibold">%</div>
+          <div className="sticky top-0 flex bg-slate-700 border-b border-white border-opacity-10 shrink-0">
+            <div className="flex-1 min-w-12 px-2 py-2 text-gray-400 font-semibold border-r border-white border-opacity-5 text-center">★</div>
+            <div className="flex-1 min-w-16 px-2 py-2 text-gray-400 font-semibold border-r border-white border-opacity-5">Sym</div>
+            <div className="flex-1 min-w-16 px-2 py-2 text-gray-400 font-semibold border-r border-white border-opacity-5 text-right">Price</div>
+            <div className="flex-1 min-w-16 px-2 py-2 text-gray-400 font-semibold border-r border-white border-opacity-5 text-right">Chg</div>
+            <div className="flex-1 min-w-12 px-2 py-2 text-gray-400 font-semibold text-right">%</div>
           </div>
 
           {/* Data Rows */}
@@ -52,7 +52,7 @@ export default function MarketWatchWidget() {
               key={item.symbol}
               className="flex border-b border-white border-opacity-5 hover:bg-slate-700 hover:bg-opacity-30 transition"
             >
-              <div className="w-16 shrink-0 px-3 py-2 flex items-center justify-center">
+              <div className="flex-1 min-w-12 px-2 py-2 flex items-center justify-center shrink-0">
                 <button className="p-0.5 hover:opacity-80 transition">
                   <Star
                     size={12}
@@ -60,19 +60,19 @@ export default function MarketWatchWidget() {
                   />
                 </button>
               </div>
-              <div className="w-16 shrink-0 px-3 py-2 text-white font-semibold">{item.symbol}</div>
-              <div className="w-16 shrink-0 px-3 py-2 text-white font-semibold">{formatINR(item.price)}</div>
-              <div className={`w-16 shrink-0 px-3 py-2 font-semibold flex items-center gap-1 ${
+              <div className="flex-1 min-w-16 px-2 py-2 text-white font-semibold truncate">{item.symbol}</div>
+              <div className="flex-1 min-w-16 px-2 py-2 text-white font-semibold text-right truncate">{formatINR(item.price)}</div>
+              <div className={`flex-1 min-w-16 px-2 py-2 font-semibold flex items-center justify-end gap-1 ${
                 item.change >= 0 ? 'text-green-400' : 'text-red-400'
               }`}>
                 {item.change >= 0 ? (
-                  <TrendingUp size={10} />
+                  <TrendingUp size={10} className="shrink-0" />
                 ) : (
-                  <TrendingDown size={10} />
+                  <TrendingDown size={10} className="shrink-0" />
                 )}
-                <span>{item.change >= 0 ? '+' : ''}{item.change.toFixed(2)}</span>
+                <span className="truncate">{item.change >= 0 ? '+' : ''}{item.change.toFixed(2)}</span>
               </div>
-              <div className={`w-16 shrink-0 px-3 py-2 font-semibold ${
+              <div className={`flex-1 min-w-12 px-2 py-2 font-semibold text-right truncate ${
                 item.changePercent >= 0 ? 'text-green-400' : 'text-red-400'
               }`}>
                 {item.changePercent >= 0 ? '+' : ''}{item.changePercent.toFixed(2)}%
@@ -83,8 +83,8 @@ export default function MarketWatchWidget() {
       </div>
 
       {/* Footer */}
-      <div className="px-3 py-2 border-t border-white border-opacity-10 bg-slate-700 bg-opacity-50">
-        <p className="text-gray-400 text-xs">{watchlist.length} symbols</p>
+      <div className="px-3 py-2 border-t border-white border-opacity-10 bg-slate-700 bg-opacity-50 shrink-0">
+        <p className="text-gray-400 text-xs truncate">{watchlist.length} symbols</p>
       </div>
     </div>
   );
