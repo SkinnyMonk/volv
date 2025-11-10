@@ -3,6 +3,8 @@ import React, { Suspense } from 'react';
 import "./globals.css";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import { AuthProvider } from "@/lib/auth/AuthContext";
+import { ProtectedLayout } from "@/components/auth/ProtectedLayout";
 
 export const metadata: Metadata = {
   title: "volv",
@@ -17,19 +19,24 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="flex flex-col h-screen w-screen bg-gray-50">
-        {/* Header */}
-        <Header />
+        <AuthProvider>
+          <ProtectedLayout>
+            {/* Header */}
+            <Header />
 
-        {/* Main Content with Sidebar */}
-        <div className="flex flex-1 min-h-0">
-          <Sidebar />
-          <main className="flex-1 overflow-auto">
-              <Suspense fallback={<div className="w-full h-full" />}>
-                {children}
-              </Suspense>
-            </main>
-        </div>
+            {/* Main Content with Sidebar */}
+            <div className="flex flex-1 min-h-0">
+              <Sidebar />
+              <main className="flex-1 overflow-auto">
+                  <Suspense fallback={<div className="w-full h-full" />}>
+                    {children}
+                  </Suspense>
+                </main>
+            </div>
+          </ProtectedLayout>
+        </AuthProvider>
       </body>
     </html>
   );
 }
+
