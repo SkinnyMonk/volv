@@ -19,6 +19,7 @@ interface LayoutNode {
   widgetId?: string;
   direction?: 'horizontal' | 'vertical';
   children?: LayoutNode[];
+  flexSizes?: number[]; // Flex proportions for children
 }
 
 interface DropZoneInfo {
@@ -68,9 +69,13 @@ export default function ResizableWidgetContainer({
   const [dropZone, setDropZone] = useState<DropZoneInfo>({ widgetId: '', position: null });
   const [previewDimensions, setPreviewDimensions] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [hasDragMovement, setHasDragMovement] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizingData, setResizingData] = useState<{ nodeId: string; childIndex: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const nodeRefsRef = useRef<Map<string, HTMLDivElement>>(new Map());
   const dragStartPosRef = useRef({ x: 0, y: 0 });
+  const resizeStartPosRef = useRef({ x: 0, y: 0 });
+  const resizeStartSizesRef = useRef<number[] | null>(null);
 
   // Remove widget from layout
   const removeWidget = (node: LayoutNode, widgetId: string): LayoutNode => {
@@ -258,11 +263,57 @@ export default function ResizableWidgetContainer({
 
   // Mouse move handler
   useEffect(() => {
-    if (!isDraggingWidget) return;
+    if (!isDraggingWidget && !isResizing) return;
 
     const DRAG_THRESHOLD = 5; // pixels - minimum movement to show drop zone
 
     const handleMouseMove = (e: MouseEvent) => {
+      // Handle resize
+      if (isResizing && resizingData && resizeStartSizesRef.current) {
+        const deltaX = e.clientX - resizeStartPosRef.current.x;
+        const deltaY = e.clientY - resizeStartPosRef.current.y;
+        
+        setLayout((prevLayout) => {
+          if (resizingData.nodeId === '0' && prevLayout.type === 'split' && prevLayout.direction) {
+            const isHorizontal = prevLayout.direction === 'horizontal';
+            const delta = isHorizontal ? deltaX : deltaY;
+            
+            const currentFlexSizes = [...(prevLayout.flexSizes || Array(prevLayout.children?.length || 1).fill(1))];
+            const totalFlex = currentFlexSizes.reduce((sum, size) => sum + size, 0);
+            
+            if (containerRef.current) {
+              const containerSize = isHorizontal ? containerRef.current.clientWidth : containerRef.current.clientHeight;
+              
+              const pixelSizes = currentFlexSizes.map((flex) => {
+                const percentage = (flex / totalFlex) * 100;
+                return (containerSize * percentage) / 100;
+              });
+              
+              pixelSizes[resizingData.childIndex] += delta;
+              pixelSizes[resizingData.childIndex + 1] -= delta;
+              
+              const minSize = containerSize * 0.1;
+              pixelSizes[resizingData.childIndex] = Math.max(minSize, pixelSizes[resizingData.childIndex]);
+              pixelSizes[resizingData.childIndex + 1] = Math.max(minSize, pixelSizes[resizingData.childIndex + 1]);
+              
+              const newFlexSizes = pixelSizes.map((pixels) => pixels / containerSize * 100);
+              
+              return {
+                ...prevLayout,
+                flexSizes: newFlexSizes,
+              };
+            }
+          }
+          return prevLayout;
+        });
+        
+        resizeStartPosRef.current = { x: e.clientX, y: e.clientY };
+        return;
+      }
+
+      // Handle drag widget reordering
+      if (!isDraggingWidget) return;
+
       // Check if user has dragged far enough
       const deltaX = Math.abs(e.clientX - dragStartPosRef.current.x);
       const deltaY = Math.abs(e.clientY - dragStartPosRef.current.y);
@@ -293,6 +344,12 @@ export default function ResizableWidgetContainer({
     };
 
     const handleMouseUp = () => {
+      if (isResizing) {
+        setIsResizing(false);
+        setResizingData(null);
+        resizeStartSizesRef.current = null;
+        return;
+      }
       handleDrop();
     };
 
@@ -303,7 +360,7 @@ export default function ResizableWidgetContainer({
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDraggingWidget, detectDropZone, calculatePreviewDimensions, handleDrop, hasDragMovement]);
+  }, [isDraggingWidget, isResizing, resizingData, detectDropZone, calculatePreviewDimensions, handleDrop, hasDragMovement]);
 
   // Calculate dimensions for layout nodes
   const calculateDimensions = useCallback(
@@ -325,15 +382,21 @@ export default function ResizableWidgetContainer({
         if (currentNode.type === 'split' && currentNode.children) {
           const childCount = currentNode.children.length;
           const isHorizontal = currentNode.direction === 'horizontal';
+          
+          // Get flex sizes, default to equal distribution
+          const flexSizes = currentNode.flexSizes || Array(childCount).fill(1);
+          const totalFlex = flexSizes.reduce((sum, size) => sum + size, 0);
 
           currentNode.children.forEach((child, index) => {
+            const flexProportion = flexSizes[index] / totalFlex;
+            
             if (isHorizontal) {
-              const childWidth = width / childCount;
-              const childX = x + index * childWidth;
+              const childWidth = width * flexProportion;
+              const childX = x + (index === 0 ? 0 : currentNode.children!.slice(0, index).reduce((sum, _, i) => sum + (width * (flexSizes[i] / totalFlex)), 0));
               traverse(child, childX, y, childWidth, height);
             } else {
-              const childHeight = height / childCount;
-              const childY = y + index * childHeight;
+              const childHeight = height * flexProportion;
+              const childY = y + (index === 0 ? 0 : currentNode.children!.slice(0, index).reduce((sum, _, i) => sum + (height * (flexSizes[i] / totalFlex)), 0));
               traverse(child, x, childY, width, childHeight);
             }
           });
@@ -347,7 +410,7 @@ export default function ResizableWidgetContainer({
   );
 
   // Render layout tree - use a regular recursive function
-  const renderLayoutHelper = (node: LayoutNode, dimensions: Map<string, { x: number; y: number; width: number; height: number }>): React.ReactNode => {
+  const renderLayoutHelper = (node: LayoutNode, dimensions: Map<string, { x: number; y: number; width: number; height: number }>, pathId: string = '0'): React.ReactNode => {
     if (node.type === 'leaf' && node.widgetId) {
       const widget = widgets.find((w) => w.id === node.widgetId);
       if (!widget) return null;
@@ -399,11 +462,64 @@ export default function ResizableWidgetContainer({
     }
 
     if (node.type === 'split' && node.children) {
-      return node.children.map((child, idx) => (
-        <div key={`split-${idx}`}>
-          {renderLayoutHelper(child, dimensions)}
+      const childCount = node.children.length;
+      const isHorizontal = node.direction === 'horizontal';
+      const flexSizes = node.flexSizes || Array(childCount).fill(1);
+      const totalFlex = flexSizes.reduce((sum, size) => sum + size, 0);
+
+      // Calculate cumulative positions for resize handles
+      const cumulativePositions = Array(childCount)
+        .fill(0)
+        .map((_, i) => {
+          let sum = 0;
+          for (let j = 0; j <= i; j++) {
+            sum += (flexSizes[j] / totalFlex) * 100;
+          }
+          return sum;
+        });
+
+      return (
+        <div key={`split-${pathId}`}>
+          {node.children.map((child, idx) => (
+            <div key={`child-${pathId}-${idx}`}>
+              {renderLayoutHelper(child, dimensions, `${pathId}-${idx}`)}
+              
+              {/* Render resize handle between siblings */}
+              {idx < node.children!.length - 1 && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    width: isHorizontal ? '8px' : '100%',
+                    height: isHorizontal ? '100%' : '8px',
+                    cursor: isHorizontal ? 'col-resize' : 'row-resize',
+                    backgroundColor: 'transparent',
+                    zIndex: 50,
+                    transition: 'background-color 0.2s ease',
+                    // Position the resize handle
+                    left: isHorizontal ? `calc(${cumulativePositions[idx]}% - 4px)` : '0',
+                    top: !isHorizontal ? `calc(${cumulativePositions[idx]}% - 4px)` : '0',
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setIsResizing(true);
+                    setResizingData({ nodeId: pathId, childIndex: idx });
+                    resizeStartPosRef.current = { x: e.clientX, y: e.clientY };
+                    resizeStartSizesRef.current = [...flexSizes];
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(59, 130, 246, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isResizing) {
+                      (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+                    }
+                  }}
+                />
+              )}
+            </div>
+          ))}
         </div>
-      ));
+      );
     }
 
     return null;
