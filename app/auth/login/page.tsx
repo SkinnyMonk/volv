@@ -15,8 +15,8 @@ export default function LoginPage() {
   useEffect(() => {
     if (isAuthenticated && currentStep === 'success') {
       const timer = setTimeout(() => {
-        router.replace('/dashboard');
-      }, 1500); // Wait 1.5 seconds to show success message
+        router.push('/dashboard');
+      }, 2000); // Wait 2 seconds to show success message
       return () => clearTimeout(timer);
     }
   }, [isAuthenticated, currentStep, router]);

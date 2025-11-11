@@ -20,6 +20,7 @@ export default function Sidebar() {
         className={`bg-gray-950 border-r border-gray-800 transition-all duration-300 ease-out flex flex-col items-center pt-4 h-full shrink-0 ${
           isOpen ? 'w-48' : 'w-20'
         }`}
+        style={{ width: isOpen ? '192px' : '80px' }}
       >
         {/* Hamburger Button */}
         <button
@@ -38,11 +39,11 @@ export default function Sidebar() {
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             return (
-              <div key={index} className="relative group flex justify-center">
+              <div key={index} className="relative group flex justify-center w-full">
                 {item.disabled ? (
                   <div
-                    className={`flex items-center gap-3 rounded-md text-gray-500 cursor-not-allowed opacity-50 transition-all duration-200 ${
-                      isOpen ? 'px-3 py-2' : 'p-2'
+                    className={`flex items-center rounded-md text-gray-500 cursor-not-allowed opacity-50 transition-all duration-200 ${
+                      isOpen ? 'px-3 py-2 gap-3 w-full' : 'p-2 justify-center'
                     }`}
                     title="Coming soon"
                   >
@@ -58,8 +59,8 @@ export default function Sidebar() {
                 ) : (
                   <Link
                     href={item.href}
-                    className={`flex items-center gap-3 rounded-md text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-200 ${
-                      isOpen ? 'px-3 py-2' : 'p-2'
+                    className={`flex items-center rounded-md text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-200 ${
+                      isOpen ? 'px-3 py-2 gap-3 w-full' : 'p-2 justify-center'
                     }`}
                     onClick={() => setIsOpen(false)}
                   >
@@ -74,9 +75,9 @@ export default function Sidebar() {
                   </Link>
                 )}
 
-                {/* Tooltip for collapsed state */}
+                {/* Tooltip for collapsed state - positioned below */}
                 {!isOpen && (
-                  <div className="absolute left-20 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-800 text-gray-100 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-gray-100 text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ maxWidth: '80px', width: '80px' }}>
                     {item.label}
                   </div>
                 )}

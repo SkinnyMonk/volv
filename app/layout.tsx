@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import React, { Suspense } from 'react';
 import "./globals.css";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
 import { AuthProvider } from "@/lib/auth/AuthContext";
 import { ProtectedLayout } from "@/components/auth/ProtectedLayout";
 
@@ -21,18 +18,7 @@ export default function RootLayout({
       <body className="flex flex-col h-screen w-screen bg-gray-50">
         <AuthProvider>
           <ProtectedLayout>
-            {/* Header */}
-            <Header />
-
-            {/* Main Content with Sidebar */}
-            <div className="flex flex-1 min-h-0">
-              <Sidebar />
-              <main className="flex-1 overflow-auto">
-                  <Suspense fallback={<div className="w-full h-full" />}>
-                    {children}
-                  </Suspense>
-                </main>
-            </div>
+            {children}
           </ProtectedLayout>
         </AuthProvider>
       </body>
