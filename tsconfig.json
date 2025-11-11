@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@utils": ["./lib/utils"],
+      "@utils/exchanges": ["./lib/exchanges"]
     }
   },
   "include": [
