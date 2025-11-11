@@ -4,22 +4,115 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { ClientIdForm } from '@/components/auth/ClientIdForm';
 import { OTPForm } from '@/components/auth/OTPForm';
 import { TwoFAForm } from '@/components/auth/TwoFAForm';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 export default function LoginPage() {
-  const { currentStep, user, errorMessage, isAuthenticated } = useAuth();
-  const router = useRouter();
+  const { currentStep, user, errorMessage, isAuthenticated, logout } = useAuth();
+  const [showFallback, setShowFallback] = useState(false);
+  const redirectAttemptRef = useRef(0);
 
   // Redirect to dashboard on successful login
   useEffect(() => {
     if (isAuthenticated && currentStep === 'success') {
-      const timer = setTimeout(() => {
-        router.push('/dashboard');
-      }, 2000); // Wait 2 seconds to show success message
-      return () => clearTimeout(timer);
+      console.log('✅ Login successful! Auth state:', { isAuthenticated, currentStep, hasAuthToken: !!localStorage.getItem('authToken') });
+      redirectAttemptRef.current = 0;
+      
+      // Direct redirect - use native JavaScript for guaranteed execution
+      const redirect = () => {
+        const authToken = localStorage.getItem('authToken');
+        console.log('� Checking auth token:', { authToken: !!authToken });
+        
+        if (authToken) {
+          console.log('✅ Auth token found! Redirecting to dashboard...');
+          // Use window.location for hard redirect - this ALWAYS works
+          window.location.href = '/dashboard';
+        } else {
+          console.log('❌ No auth token found! Showing fallback.');
+          setShowFallback(true);
+        }
+      };
+
+      // Immediate redirect
+      redirect();
+
+      // Safety backup: redirect again after 500ms if still needed
+      const backupTimer = setTimeout(() => {
+        const authToken = localStorage.getItem('authToken');
+        if (authToken && typeof window !== 'undefined' && window.location.pathname === '/auth/login') {
+          console.log('🔄 Backup redirect triggered...');
+          window.location.href = '/dashboard';
+        }
+      }, 500);
+
+      return () => {
+        clearTimeout(backupTimer);
+      };
     }
-  }, [isAuthenticated, currentStep, router]);
+  }, [isAuthenticated, currentStep]);
+
+  // Additional safety check - continuously redirect if auth token exists and we're on login page
+  useEffect(() => {
+    if (isAuthenticated || currentStep === 'success') {
+      const checkAndRedirect = () => {
+        const authToken = localStorage.getItem('authToken');
+        if (authToken && typeof window !== 'undefined' && window.location.pathname === '/auth/login') {
+          console.log('🚨 Safety check triggered - auth token exists, forcing redirect!');
+          window.location.href = '/dashboard';
+        }
+      };
+
+      // Check immediately
+      checkAndRedirect();
+
+      // Also check every 300ms
+      const interval = setInterval(checkAndRedirect, 300);
+      
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, currentStep]);
+
+  // Handle fallback - clear auth and prompt to login again
+  const handleFallback = () => {
+    console.log('🔄 User clicked fallback action - clearing all auth data');
+    
+    // Clear everything
+    logout();
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    sessionStorage.clear();
+    
+    // Reset state
+    setShowFallback(false);
+    
+    // Force a hard page reload to reset all state
+    window.location.href = '/auth/login';
+  };
+
+  if (showFallback) {
+    return (
+      <div className="flex items-center justify-center w-full h-full p-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+          <div className="mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-600 rounded-full mb-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">Redirect Issue</h2>
+          <p className="text-gray-400 mb-6">
+            We encountered an issue redirecting you to the dashboard. Your login has been cleared. Please try logging in again.
+          </p>
+          <button
+            onClick={handleFallback}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          >
+            Login Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isAuthenticated || currentStep === 'success') {
     return (
@@ -38,7 +131,12 @@ export default function LoginPage() {
               Welcome, <span className="font-semibold text-white">{user.name}</span>
             </p>
           )}
-          <p className="text-gray-500 text-sm">Redirecting to dashboard...</p>
+          <p className="text-gray-500 text-sm mb-4">Redirecting to dashboard...</p>
+          
+          {/* Debug info */}
+          <div className="text-xs text-gray-600 bg-gray-800 p-2 rounded mt-4">
+            <p>Auth Token: {localStorage.getItem('authToken') ? '✅ Stored' : '❌ Missing'}</p>
+          </div>
         </div>
       </div>
     );

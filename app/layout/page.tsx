@@ -76,7 +76,7 @@ export default function LayoutPage() {
   const [openWidget, setOpenWidget] = useState(false);
   const [gridWidgets, setGridWidgets] = useState<GridWidget[]>([]);
   const [isOrderFormOpen, setIsOrderFormOpen] = useState(false);
-  const [layoutInitialized, setLayoutInitialized] = useState(false);
+  const [layoutInitialized, setLayoutInitialized] = useState<boolean | null>(null);
   const initializedRef = useRef(false);
   const addWidgetButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -86,7 +86,7 @@ export default function LayoutPage() {
       const layout = getLayout(layoutIdParam);
       if (layout) {
         setGridWidgets(layout.widgets);
-        // Reset initialized flag based on whether layout has widgets
+        // Set initialized based on whether layout has widgets or is explicitly marked as initialized
         setLayoutInitialized(layout.widgets.length > 0 || layout.initialized === true);
       } else {
         setGridWidgets([]);
@@ -252,7 +252,7 @@ export default function LayoutPage() {
       {/* Layout Tabs with Add Widget Button */}
       <LayoutTabs 
         activeLayoutId={layoutIdParam || undefined}
-        showAddWidget={layoutInitialized}
+        showAddWidget={layoutInitialized === true}
         onAddWidget={() => setOpenWidget(true)}
         addWidgetButtonRef={addWidgetButtonRef}
       />
@@ -321,7 +321,11 @@ export default function LayoutPage() {
       <div 
         className="flex-1 m-6 rounded-lg p-2 overflow-hidden bg-slate-800 bg-opacity-50 flex flex-col"
       >
-        {gridWidgets.length === 0 && !layoutInitialized ? (
+        {layoutInitialized === null ? (
+          <div className="flex items-center justify-center w-full h-full">
+            <p className="text-gray-400 text-lg">Loading layout...</p>
+          </div>
+        ) : gridWidgets.length === 0 && !layoutInitialized ? (
           <LayoutTemplateSelector onSelectTemplate={handleSelectTemplate} />
         ) : gridWidgets.length === 0 && layoutInitialized ? (
           <div className="flex items-center justify-center w-full h-full">

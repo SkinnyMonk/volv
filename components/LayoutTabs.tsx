@@ -32,12 +32,6 @@ export default function LayoutTabs({ activeLayoutId, onAddWidget, showAddWidget 
   const layoutIdFromUrl = searchParams?.get('layoutId');
   const currentActiveId = activeLayoutId || layoutIdFromUrl;
 
-  // Load layouts on mount
-  useEffect(() => {
-    // Ensure state is synced on component mount
-    return () => {};
-  }, []);
-
   // Navigate to first layout if no layout is selected
   useEffect(() => {
     if (!currentActiveId && layouts.length > 0) {
@@ -137,18 +131,18 @@ export default function LayoutTabs({ activeLayoutId, onAddWidget, showAddWidget 
             ) : (
               <>
                 <span className="truncate max-w-xs">{layout.name}</span>
-                {currentActiveId === layout.id && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteLayout(e, layout.id);
-                    }}
-                    className="p-1 hover:bg-red-500 rounded-full transition-colors text-white"
-                    title="Delete layout"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteLayout(e, layout.id);
+                  }}
+                  className={`p-1 hover:bg-red-500 rounded-full transition-colors text-white ${
+                    currentActiveId === layout.id ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                  }`}
+                  title="Delete layout"
+                >
+                  <X size={14} />
+                </button>
               </>
             )}
           </div>
@@ -165,16 +159,16 @@ export default function LayoutTabs({ activeLayoutId, onAddWidget, showAddWidget 
       </button>
 
       {/* Add Widget Button - Only show if layout is initialized */}
-      {showAddWidget && currentActiveId && (
-        <button
-          ref={addWidgetButtonRef}
-          onClick={() => onAddWidget?.()}
-          className="ml-auto px-4 py-2 text-gray-400 border border-gray-600 hover:border-gray-400 hover:text-white rounded transition-all duration-200"
-          title="Add widget"
-        >
-          + Add Widget
-        </button>
-      )}
+      <button
+        ref={addWidgetButtonRef}
+        onClick={() => onAddWidget?.()}
+        className={`ml-auto px-4 py-2 text-gray-400 border border-gray-600 hover:border-gray-400 hover:text-white rounded transition-all duration-200 ${
+          showAddWidget && currentActiveId ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none h-0'
+        }`}
+        title="Add widget"
+      >
+        + Add Widget
+      </button>
     </div>
   );
 }
