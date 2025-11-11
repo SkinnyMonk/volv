@@ -139,32 +139,21 @@ export function useOptionChainWebSocket(
 
       setLastUpdate(new Date());
 
-      console.log('[useOptionChainWebSocket] Updated option chain:', {
-        strike,
-        optionType,
-        iv,
-        bid: bidPrice,
-        ask: askPrice,
-      });
-    } catch (error) {
-      console.error('[useOptionChainWebSocket] Error handling greek data:', error);
+     
+    } catch {
+      // Error handling greek data
     }
   }, []);
 
   // Subscribe to option chain WebSocket
   const subscribeToOptionChain = useCallback(async () => {
     if (!octopusInstance.isConnected()) {
-      console.warn('[useOptionChainWebSocket] WebSocket not ready for subscription');
       return;
     }
 
     try {
       const exchangeCode = getExchangeCode(exchange);
-      console.log(`[useOptionChainWebSocket] Attempting to subscribe to option chain:`, {
-        token,
-        exchange,
-        exchangeCode,
-      });
+      
 
       const handler = octopusInstance.wsHandler({
         messageType: 'GreekData',
@@ -183,13 +172,9 @@ export function useOptionChainWebSocket(
         subscriptionRef.current = () => {
           void handler.unsubscribe();
         };
-
-        console.log(`[useOptionChainWebSocket] ✅ Successfully subscribed to option chain`);
-      } else {
-        console.error(`[useOptionChainWebSocket] ❌ Handler is null for option chain`);
       }
-    } catch (error) {
-      console.error(`[useOptionChainWebSocket] ❌ Error subscribing to option chain:`, error);
+    } catch {
+      // Error subscribing to option chain
     }
   }, [exchange, token, handleGreekDataUpdate]);
 
@@ -199,19 +184,16 @@ export function useOptionChainWebSocket(
 
     const initializeWebSocket = async () => {
       try {
-        console.log('[useOptionChainWebSocket] Initializing WebSocket for option chain');
         const connected = await octopusInstance.connect();
 
         if (!isMounted) return;
 
-        console.log('[useOptionChainWebSocket] Connection result:', connected);
         setIsConnected(connected);
 
         if (connected) {
           await subscribeToOptionChain();
         }
-      } catch (error) {
-        console.error('[useOptionChainWebSocket] Error initializing WebSocket:', error);
+      } catch {
         if (isMounted) {
           setIsConnected(false);
         }

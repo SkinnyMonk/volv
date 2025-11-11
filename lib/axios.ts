@@ -51,10 +51,6 @@ v1Instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (authToken) {
       config.headers['x-authorization-token'] = authToken;
-      console.log(`[axios v1] Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, {
-        token: authToken.substring(0, 20) + '...',
-        params: config.params,
-      });
     }
     return config;
   },
@@ -66,10 +62,6 @@ v3Instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (authToken) {
       config.headers['x-authorization-token'] = authToken;
-      console.log(`[axios v3] Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, {
-        token: authToken.substring(0, 20) + '...',
-        params: config.params,
-      });
     }
     return config;
   },

@@ -23,22 +23,16 @@ export function usePositions() {
       try {
         if (user === null) throw new Error('User not authenticated');
         const loginId = user.loginId;
-        console.log(`[usePositions] Fetching historical positions for client: ${loginId}`);
         const response = await fetchPositions(loginId);
         
-        console.log(`[usePositions] Response received:`, response);
-        
         if (response.status === 'success' && Array.isArray(response.data)) {
-          console.log(`[usePositions] Got ${response.data.length} positions`);
           setPositions(response.data);
         } else {
           const errorMsg = response.message || 'Failed to fetch positions';
-          console.error(`[usePositions] Error: ${errorMsg}`);
           setError(errorMsg);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-        console.error(`[usePositions] Exception: ${errorMessage}`, err);
         setError(errorMessage);
       } finally {
         setLoading(false);

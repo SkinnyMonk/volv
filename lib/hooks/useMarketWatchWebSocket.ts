@@ -58,14 +58,12 @@ export function useMarketWatchWebSocket(tokensWithExchange: TokenWithExchange[] 
     try {
       const msg = message.msg;
       if (!msg) {
-        console.warn('[useMarketWatchWebSocket] Message has no msg property');
         return;
       }
 
       // Extract token from message
       const token = msg.instrumentToken || msg.token;
       if (!token) {
-        console.warn('[useMarketWatchWebSocket] No token found in message');
         return;
       }
 
@@ -85,20 +83,13 @@ export function useMarketWatchWebSocket(tokensWithExchange: TokenWithExchange[] 
         close: (msg.closePrice || msg.close) as number | undefined,
       };
 
-      console.log('[useMarketWatchWebSocket] Updated price data:', {
-        token,
-        exchange: updatedData.exchange,
-        ltp: updatedData.ltp,
-        changePercent: updatedData.changePercent
-      });
-
       setPriceData((prev) => {
         const newMap = new Map(prev);
         newMap.set(token, updatedData);
         return newMap;
       });
-    } catch (error) {
-      console.error('[useMarketWatchWebSocket] Error handling market data:', error);
+    } catch {
+      // Error handling market data
     }
   }, []);
 
@@ -110,17 +101,8 @@ export function useMarketWatchWebSocket(tokensWithExchange: TokenWithExchange[] 
   // Subscribe to tokens
   const subscribeToTokens = useCallback(async (tokensToSub: TokenWithExchange[]) => {
     if (!tokensToSub.length || !octopusInstance.isConnected()) {
-      console.warn('[useMarketWatchWebSocket] WebSocket not ready for subscription', {
-        tokensCount: tokensToSub.length,
-        isConnected: octopusInstance.isConnected()
-      });
       return;
     }
-
-    console.log('[useMarketWatchWebSocket] Starting subscription for tokens:', {
-      count: tokensToSub.length,
-      tokens: tokensToSub.map(t => ({ token: t.token, exchange: t.exchange }))
-    });
 
     // Unsubscribe from tokens no longer needed
     const existingTokens = Array.from(subscriptionsRef.current.keys());
@@ -133,9 +115,8 @@ export function useMarketWatchWebSocket(tokensWithExchange: TokenWithExchange[] 
           try {
             await unsubscribeFn();
             subscriptionsRef.current.delete(token);
-            console.log(`[useMarketWatchWebSocket] Unsubscribed from token: ${token}`);
-          } catch (error) {
-            console.error(`[useMarketWatchWebSocket] Error unsubscribing from ${token}:`, error);
+          } catch {
+            // Error unsubscribing
           }
         }
       }
@@ -146,7 +127,6 @@ export function useMarketWatchWebSocket(tokensWithExchange: TokenWithExchange[] 
       if (!subscriptionsRef.current.has(token)) {
         try {
           const numericExchangeCode = normalizeExchangeCode(exchange);
-          console.log(`[useMarketWatchWebSocket] Attempting to subscribe to token: ${token} on exchange: ${exchange} (code: ${numericExchangeCode})`);
           
           const handler = octopusInstance.wsHandler({
             messageType: 'DetailMarketDataMessage',
@@ -162,12 +142,9 @@ export function useMarketWatchWebSocket(tokensWithExchange: TokenWithExchange[] 
             subscriptionsRef.current.set(token, () => {
               void handler.unsubscribe();
             });
-            console.log(`[useMarketWatchWebSocket] ✅ Successfully subscribed to token: ${token} on ${exchange} (code: ${numericExchangeCode})`);
-          } else {
-            console.error(`[useMarketWatchWebSocket] ❌ Handler is null for token: ${token}`);
           }
-        } catch (error) {
-          console.error(`[useMarketWatchWebSocket] ❌ Error subscribing to ${token}:`, error);
+        } catch {
+          // Error subscribing
         }
       }
     }
@@ -180,29 +157,20 @@ export function useMarketWatchWebSocket(tokensWithExchange: TokenWithExchange[] 
     
     const initializeWebSocket = async () => {
       try {
-        console.log('[useMarketWatchWebSocket] Initializing WebSocket with tokens:', {
-          count: tokensWithExchange.length,
-          tokens: tokensWithExchange.map(t => ({ token: t.token, exchange: t.exchange }))
-        });
         const connected = await octopusInstance.connect();
         
         if (!isMounted) return;
         
-        console.log('[useMarketWatchWebSocket] Connection result:', connected);
         setIsConnected(connected);
 
         if (connected && tokensWithExchange.length > 0) {
-          console.log('[useMarketWatchWebSocket] Connected - subscribing to', tokensWithExchange.length, 'tokens');
           await subscribeToTokens(tokensWithExchange);
           
           if (isMounted) {
-            console.log('[useMarketWatchWebSocket] ✓ Subscriptions complete');
+            // Subscriptions complete
           }
-        } else {
-          console.warn('[useMarketWatchWebSocket] Not subscribing - connected:', connected, 'tokens:', tokensWithExchange.length);
         }
-      } catch (error) {
-        console.error('[useMarketWatchWebSocket] Connection error:', error);
+      } catch {
         if (isMounted) {
           setIsConnected(false);
         }
@@ -214,7 +182,6 @@ export function useMarketWatchWebSocket(tokensWithExchange: TokenWithExchange[] 
     // Cleanup function
     return () => {
       isMounted = false;
-      console.log('[useMarketWatchWebSocket] Cleaning up - unsubscribing from', subscriptions.size, 'tokens');
       // Cleanup subscriptions on unmount
       subscriptions.forEach((unsubscribeFn) => {
         unsubscribeFn();

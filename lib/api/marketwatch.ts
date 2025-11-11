@@ -31,27 +31,22 @@ export interface MarketWatchesResponse {
   status: string;
 }
 
-export async function fetchMarketWatches(clientId: string): Promise<MarketWatchesResponse> {
+export async function fetchMarketWatches(): Promise<MarketWatchesResponse> {
   try {
-    console.log(`[fetchMarketWatches] Calling API v3 /marketwatches for client: ${clientId}`);
     const response = await apiV3.get<MarketWatchesResponse>('/marketwatches');
-
-    console.log(`[fetchMarketWatches] Response status: ${response.status}, count: ${response.data.data?.length || 0}`);
     return response.data;
-  } catch (error) {
-    console.error('[fetchMarketWatches] API error:', error);
-    throw error;
+  } catch {
+    throw Error('Failed to fetch market watches');
   }
 }
 
-export async function getDefaultMarketWatch(clientId: string): Promise<MarketWatch | null> {
+export async function getDefaultMarketWatch(): Promise<MarketWatch | null> {
   try {
-    const response = await fetchMarketWatches(clientId);
+    const response = await fetchMarketWatches();
     // Return first market watch (or first one with instruments)
     const watchWithInstruments = response.data.find((watch) => watch.instruments.length > 0);
     return watchWithInstruments || response.data[0] || null;
-  } catch (error) {
-    console.error('[getDefaultMarketWatch] Error:', error);
-    throw error;
+  } catch {
+    throw Error('Failed to get default market watch');
   }
 }

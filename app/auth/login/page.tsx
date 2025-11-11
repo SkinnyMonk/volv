@@ -14,20 +14,16 @@ export default function LoginPage() {
   // Redirect to dashboard on successful login
   useEffect(() => {
     if (isAuthenticated && currentStep === 'success') {
-      console.log('✅ Login successful! Auth state:', { isAuthenticated, currentStep, hasAuthToken: !!localStorage.getItem('authToken') });
       redirectAttemptRef.current = 0;
       
       // Direct redirect - use native JavaScript for guaranteed execution
       const redirect = () => {
         const authToken = localStorage.getItem('authToken');
-        console.log('� Checking auth token:', { authToken: !!authToken });
         
         if (authToken) {
-          console.log('✅ Auth token found! Redirecting to dashboard...');
           // Use window.location for hard redirect - this ALWAYS works
           window.location.href = '/dashboard';
         } else {
-          console.log('❌ No auth token found! Showing fallback.');
           setShowFallback(true);
         }
       };
@@ -39,7 +35,6 @@ export default function LoginPage() {
       const backupTimer = setTimeout(() => {
         const authToken = localStorage.getItem('authToken');
         if (authToken && typeof window !== 'undefined' && window.location.pathname === '/auth/login') {
-          console.log('🔄 Backup redirect triggered...');
           window.location.href = '/dashboard';
         }
       }, 500);
@@ -56,7 +51,6 @@ export default function LoginPage() {
       const checkAndRedirect = () => {
         const authToken = localStorage.getItem('authToken');
         if (authToken && typeof window !== 'undefined' && window.location.pathname === '/auth/login') {
-          console.log('🚨 Safety check triggered - auth token exists, forcing redirect!');
           window.location.href = '/dashboard';
         }
       };
@@ -73,7 +67,6 @@ export default function LoginPage() {
 
   // Handle fallback - clear auth and prompt to login again
   const handleFallback = () => {
-    console.log('🔄 User clicked fallback action - clearing all auth data');
     
     // Clear everything
     logout();
@@ -133,10 +126,7 @@ export default function LoginPage() {
           )}
           <p className="text-gray-500 text-sm mb-4">Redirecting to dashboard...</p>
           
-          {/* Debug info */}
-          <div className="text-xs text-gray-600 bg-gray-800 p-2 rounded mt-4">
-            <p>Auth Token: {localStorage.getItem('authToken') ? '✅ Stored' : '❌ Missing'}</p>
-          </div>
+          
         </div>
       </div>
     );
@@ -146,12 +136,7 @@ export default function LoginPage() {
     <div className="flex items-center justify-center w-full h-full p-4">
       <div className="bg-gray-900 border border-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full">
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">V</span>
-            </div>
-            <h1 className="text-2xl font-bold text-white">volv</h1>
-          </div>
+          <h1 className="text-2xl font-bold text-white">volv</h1>
           <p className="text-gray-400 text-sm">Trading Platform</p>
         </div>
 

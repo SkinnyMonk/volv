@@ -76,10 +76,7 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="space-y-8">
       <div>
-        <h1 className="text-4xl font-bold text-white">Dashboard</h1>
-        <p className="text-gray-400 mt-2">
-          Access trading widgets and manage your portfolio
-        </p>
+       
       </div>
 
       {/* Widgets Grid */}
@@ -88,40 +85,29 @@ export default function DashboardPage() {
           <Link
             key={widget.id}
             href={widget.href}
-            className="group relative overflow-hidden"
+            className="group relative block h-full"
           >
-            <div className="absolute inset-0 bg-linear-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-            <div className="relative bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-gray-700 transition-all duration-300 transform group-hover:scale-105 cursor-pointer">
+            <div className="absolute inset-0 bg-linear-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-lg" />
+            <div className="relative bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-gray-700 transition-all duration-300 transform group-hover:scale-105 cursor-pointer h-full flex flex-col">
               {/* Gradient background on hover */}
               <div
                 className={`absolute inset-0 bg-linear-to-br ${widget.color} opacity-0 group-hover:opacity-5 rounded-lg transition-opacity duration-300`}
               />
 
-              {/* Content */}
-              <div className="relative z-10 space-y-4">
-                {/* Icon */}
+              <div className="relative z-10 flex-1 flex flex-col">
                 <div
-                  className={`inline-block p-3 rounded-lg bg-linear-to-br ${widget.color} text-white`}
+                  className={`inline-block p-3 rounded-lg bg-linear-to-br ${widget.color} text-white mb-4 self-start`}
                 >
                   {widget.icon}
                 </div>
 
-                {/* Title and Description */}
-                <div>
-                  <h2 className="text-xl font-semibold text-white group-hover:text-gray-100 transition-colors">
-                    {widget.name}
-                  </h2>
-                  <p className="text-gray-400 text-sm mt-2 group-hover:text-gray-300 transition-colors">
-                    {widget.description}
-                  </p>
-                </div>
+                <h2 className="text-xl font-semibold text-white group-hover:text-gray-100 transition-colors mb-2">
+                  {widget.name}
+                </h2>
 
-                {/* Arrow indicator */}
-                <div className="pt-2">
-                  <span className="text-sm font-medium text-gray-500 group-hover:text-gray-300 transition-colors flex items-center gap-1">
-                    View widget →
-                  </span>
-                </div>
+                <p className="text-gray-400 text-sm leading-relaxed flex-1">
+                  {widget.description}
+                </p>
               </div>
             </div>
           </Link>

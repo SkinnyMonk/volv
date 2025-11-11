@@ -78,15 +78,12 @@ export async function fetchPositions(
   clientId: string
 ): Promise<PositionsResponse> {
   try {
-    console.log(`[fetchPositions] Calling API v1 /positions with params:`, { clientId, type: 'historical' });
     const response = await apiV1.get<ApiPositionsResponse>('/positions', {
       params: {
         client_id: clientId,
         type: 'historical',
       },
     });
-
-    console.log(`[fetchPositions] API response status: ${response.status}, data count: ${response.data.data?.length || 0}`);
     
     // Normalize the response data
     const normalizedData = response.data.data.map(normalizePosition);

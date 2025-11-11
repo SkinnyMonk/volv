@@ -18,31 +18,21 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
   useEffect(() => {
     // Don't protect auth routes
     if (pathname?.startsWith('/auth')) {
-      console.log('📄 Auth route detected:', pathname);
       return;
     }
 
     // Check if there's an auth token in localStorage (persisted auth)
     const hasAuthToken = typeof window !== 'undefined' && !!localStorage.getItem('authToken');
-    
-    console.log('🔐 Protected route access:', { 
-      pathname, 
-      isAuthenticated, 
-      hasAuthToken,
-      shouldAllow: isAuthenticated || hasAuthToken 
-    });
+  
     
     // Only redirect if BOTH conditions are true:
     // 1. isAuthenticated is false (state not hydrated)
     // 2. AND no auth token in localStorage (actually logged out)
     if (!isAuthenticated && !hasAuthToken) {
-      console.log('❌ Access denied - no auth token found, redirecting to login...');
       router.replace('/auth/login');
     } else if (!isAuthenticated && hasAuthToken) {
-      console.log('⏳ Access allowed (token exists) - waiting for auth hydration...');
       // Don't redirect - let hydration finish
     } else {
-      console.log('✅ Access granted - user authenticated');
     }
   }, [isAuthenticated, router, pathname]);
 
