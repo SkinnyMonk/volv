@@ -59,10 +59,11 @@ interface GreekDataMessage {
   };
 }
 
-export function useOptionChainWebSocket(
-  exchange: string = 'NSE',
-  token: string | number = 26000
-) {
+export function useOptionChainWebSocket() {
+  // Hardcoded for Nifty 50 options
+  const EXCHANGE = 'NSE';
+  const TOKEN = 26000;
+
   const [optionChain, setOptionChain] = useState<Map<number, OptionChainData>>(new Map());
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
@@ -76,6 +77,8 @@ export function useOptionChainWebSocket(
         console.warn('[useOptionChainWebSocket] Message has no msg property');
         return;
       }
+
+      console.log('[useOptionChainWebSocket] Decoded Greek Data:', msg);
 
       const strike = (msg.strikePrice || msg.strike_price) as number;
       const optionType = (msg.optionType || msg.option_type) as string;
@@ -98,6 +101,8 @@ export function useOptionChainWebSocket(
       const askPrice = (msg.askPrice || msg.ask_price || 0) as number;
       const volume = (msg.volume || 0) as number;
       const openInterest = (msg.openInterest || msg.open_interest || 0) as number;
+
+      console.log(`[useOptionChainWebSocket] Strike: ${strike}, Type: ${optionType}, Bid: ${bidPrice}, Ask: ${askPrice}, Greeks: `, greekData);
 
       setOptionChain((prev) => {
         const newMap = new Map(prev);
@@ -137,6 +142,7 @@ export function useOptionChainWebSocket(
         return newMap;
       });
 
+      console.log(`[useOptionChainWebSocket] Updated option chain for strike: ${strike}`);
       setLastUpdate(new Date());
 
      
@@ -152,15 +158,16 @@ export function useOptionChainWebSocket(
     }
 
     try {
-      const exchangeCode = getExchangeCode(exchange);
+      const exchangeCode = getExchangeCode(EXCHANGE);
       
+      console.log(`[useOptionChainWebSocket] Subscribing to Nifty 50 options: Exchange=${EXCHANGE}, Token=${TOKEN}, ExchangeCode=${exchangeCode}`);
 
       const handler = octopusInstance.wsHandler({
         messageType: 'GreekData',
         subscriptionLocation: '',
         payload: {
           exchangeCode,
-          instrumentToken: token,
+          instrumentToken: TOKEN,
         },
       });
 
@@ -176,7 +183,7 @@ export function useOptionChainWebSocket(
     } catch {
       // Error subscribing to option chain
     }
-  }, [exchange, token, handleGreekDataUpdate]);
+  }, [handleGreekDataUpdate]);
 
   // Connect WebSocket and subscribe to option chain
   useEffect(() => {

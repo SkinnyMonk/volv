@@ -16,15 +16,22 @@ interface LayoutTabsProps {
 export default function LayoutTabs({ activeLayoutId, onAddWidget, showAddWidget = false, addWidgetButtonRef }: LayoutTabsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [layouts, setLayouts] = useState<CustomLayout[]>(() => {
-    const allLayouts = getAllLayouts();
-    // Ensure at least one default layout exists
-    if (allLayouts.length === 0) {
-      const defaultLayout = createLayout('New layout', []);
-      return [defaultLayout];
-    }
-    return allLayouts;
-  });
+  const [layouts, setLayouts] = useState<CustomLayout[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Load layouts from localStorage after hydration
+  useEffect(() => {
+    const loadLayouts = async () => {
+      const allLayouts = getAllLayouts();
+      const layoutsToSet = allLayouts.length === 0 
+        ? [createLayout('New layout', [])]
+        : allLayouts;
+      setLayouts(layoutsToSet);
+      setIsHydrated(true);
+    };
+    
+    loadLayouts();
+  }, []);
 
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renamingValue, setRenamingValue] = useState('');
@@ -34,10 +41,10 @@ export default function LayoutTabs({ activeLayoutId, onAddWidget, showAddWidget 
 
   // Navigate to first layout if no layout is selected
   useEffect(() => {
-    if (!currentActiveId && layouts.length > 0) {
+    if (isHydrated && !currentActiveId && layouts.length > 0) {
       router.push(`/layout?layoutId=${layouts[0].id}`);
     }
-  }, [currentActiveId, layouts, router]);
+  }, [currentActiveId, layouts, router, isHydrated]);
 
   const handleSelectLayout = (layoutId: string) => {
     // If already selected, allow rename on next click
@@ -93,8 +100,8 @@ export default function LayoutTabs({ activeLayoutId, onAddWidget, showAddWidget 
     void router.push(`/layout?layoutId=${newLayout.id}`);
   };
 
-  if (!layouts) {
-    return <div className="h-16 bg-slate-900 border-b border-gray-700 animate-pulse" />;
+  if (!isHydrated) {
+    return <div className="h-16 bg-slate-900 border-b border-gray-700" />;
   }
 
   return (

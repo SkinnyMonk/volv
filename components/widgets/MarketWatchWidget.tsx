@@ -166,7 +166,7 @@ export default function MarketWatchWidget() {
                   </div>
 
                   {/* Hover Action Buttons - Only show on hover for this specific row */}
-                  <div className="hidden group-hover:flex items-center gap-1 shrink-0 flex-wrap justify-start">
+                  {/* <div className="hidden group-hover:flex items-center gap-1 shrink-0 flex-wrap justify-start">
                     {!isIndex && (
                       <>
                         <button className="px-2 py-1 text-xs bg-green-900 bg-opacity-40 text-green-300 rounded hover:bg-opacity-60 transition">
@@ -183,7 +183,7 @@ export default function MarketWatchWidget() {
                     <button className="px-2 py-1 text-xs bg-purple-900 bg-opacity-40 text-purple-300 rounded hover:bg-opacity-60 transition">
                       Depth
                     </button>
-                  </div>
+                  </div> */}
                 </div>
               );
             })}
