@@ -160,9 +160,7 @@ export default function OrdersWidget() {
             <div className="sticky top-0 flex bg-slate-700 border-b border-white border-opacity-10 shrink-0">
               {isTrade ? (
                 <>
-                  <div className="flex-1 min-w-16 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">ID</div>
-                  <div className="flex-1 min-w-12 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">Type</div>
-                  <div className="flex-1 min-w-12 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">Sym</div>
+                  <div className="flex-1 min-w-20 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">Scrip Name</div>
                   <div className="flex-1 min-w-12 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5 text-right">Qty</div>
                   <div className="flex-1 min-w-16 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5 text-right">Price</div>
                   <div className="flex-1 min-w-16 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5 text-right">Order</div>
@@ -170,9 +168,7 @@ export default function OrdersWidget() {
                 </>
               ) : (
                 <>
-                  <div className="flex-1 min-w-12 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">ID</div>
-                  <div className="flex-1 min-w-16 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">Type</div>
-                  <div className="flex-1 min-w-12 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">Sym</div>
+                  <div className="flex-1 min-w-20 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5">Scrip Name</div>
                   <div className="flex-1 min-w-12 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5 text-right">Qty</div>
                   <div className="flex-1 min-w-16 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5 text-right">Price</div>
                   <div className="flex-1 min-w-20 px-2 py-2 text-gray-400 font-semibold text-xs border-r border-white border-opacity-5 text-center">Status</div>
@@ -189,22 +185,21 @@ export default function OrdersWidget() {
                   key={trade.id}
                   className="flex border-b border-white border-opacity-5 hover:bg-slate-700 hover:bg-opacity-30 transition"
                 >
-                  <div className="flex-1 min-w-16 px-2 py-2 text-gray-300 text-xs truncate" title={trade.id}>
-                    {trade.id.substring(0, 8)}
-                  </div>
-                  <div className="flex-1 min-w-12 px-2 py-2 text-xs">
-                    <div
-                      className={`px-1.5 py-0.5 rounded text-xs font-semibold w-fit truncate ${
-                        trade.type === 'BUY'
-                          ? 'bg-green-900 bg-opacity-30 text-green-400'
-                          : 'bg-red-900 bg-opacity-30 text-red-400'
-                      }`}
-                    >
-                      {trade.type}
+                  <div className="flex-1 min-w-20 px-2 py-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="text-white font-semibold text-xs truncate flex-1">
+                        {trade.symbol}
+                      </div>
+                      <div
+                        className={`px-1.5 py-0.5 rounded text-xs font-semibold whitespace-nowrap ${
+                          trade.type === 'BUY'
+                            ? 'bg-green-900 bg-opacity-30 text-green-400'
+                            : 'bg-red-900 bg-opacity-30 text-red-400'
+                        }`}
+                      >
+                        {trade.type}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex-1 min-w-12 px-2 py-2 text-white font-semibold text-xs truncate">
-                    {trade.symbol}
                   </div>
                   <div className="flex-1 min-w-12 px-2 py-2 text-gray-300 text-xs text-right">
                     {trade.quantity}
@@ -225,22 +220,21 @@ export default function OrdersWidget() {
                   key={order.id}
                   className="flex border-b border-white border-opacity-5 hover:bg-slate-700 hover:bg-opacity-30 transition"
                 >
-                  <div className="flex-1 min-w-12 px-2 py-2 text-gray-300 text-xs truncate" title={order.id}>
-                    {order.id.substring(0, 6)}
-                  </div>
-                  <div className="flex-1 min-w-16 px-2 py-2 text-xs">
-                    <div
-                      className={`px-1.5 py-0.5 rounded text-xs font-semibold w-fit truncate ${
-                        order.type === 'BUY'
-                          ? 'bg-green-900 bg-opacity-30 text-green-400'
-                          : 'bg-red-900 bg-opacity-30 text-red-400'
-                      }`}
-                    >
-                      {order.type}
+                  <div className="flex-1 min-w-20 px-2 py-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="text-white font-semibold text-xs truncate flex-1">
+                        {order.symbol}
+                      </div>
+                      <div
+                        className={`px-1.5 py-0.5 rounded text-xs font-semibold whitespace-nowrap ${
+                          order.type === 'BUY'
+                            ? 'bg-green-900 bg-opacity-30 text-green-400'
+                            : 'bg-red-900 bg-opacity-30 text-red-400'
+                        }`}
+                      >
+                        {order.type}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex-1 min-w-12 px-2 py-2 text-white font-semibold text-xs truncate">
-                    {order.symbol}
                   </div>
                   <div className="flex-1 min-w-12 px-2 py-2 text-gray-300 text-xs text-right">
                     {order.quantity}

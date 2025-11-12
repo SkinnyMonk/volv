@@ -2,12 +2,11 @@
 
 import { useMarketWatches } from '@/lib/hooks/useMarketWatches';
 import { useMarketWatchWebSocket } from '@/lib/hooks/useMarketWatchWebSocket';
-import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState, useRef, useMemo } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useRef, useMemo } from 'react';
 
 export default function MarketWatchWidget() {
   const { marketWatches, selectedWatch, selectedWatchId, setSelectedWatchId, loading, error } = useMarketWatches();
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Get tokens with their exchange codes from selected watch
@@ -19,18 +18,7 @@ export default function MarketWatchWidget() {
   }, [selectedWatch]);
 
   // Subscribe to WebSocket for real-time data
-  const { priceData, isConnected } = useMarketWatchWebSocket(tokensWithExchange);
-
-  const toggleFavorite = (token: string | number) => {
-    const tokenStr = String(token);
-    const newFavorites = new Set(favorites);
-    if (newFavorites.has(tokenStr)) {
-      newFavorites.delete(tokenStr);
-    } else {
-      newFavorites.add(tokenStr);
-    }
-    setFavorites(newFavorites);
-  };
+  const { priceData } = useMarketWatchWebSocket(tokensWithExchange);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -121,14 +109,6 @@ export default function MarketWatchWidget() {
               <p className="text-white text-xs font-semibold">{selectedWatch.name}</p>
               <p className="text-gray-400 text-xs mt-0.5">{instruments.length} instruments</p>
             </div>
-            <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded ${
-              isConnected
-                ? 'bg-green-900 bg-opacity-40 text-green-300'
-                : 'bg-yellow-900 bg-opacity-40 text-yellow-300'
-            }`}>
-              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`} />
-              {isConnected ? 'Live' : 'Connecting...'}
-            </div>
           </div>
         </div>
       )}
@@ -140,37 +120,31 @@ export default function MarketWatchWidget() {
             {instruments.map((instrument) => {
               const liveData = priceData.get(instrument.token);
               const hasData = liveData !== undefined;
-              const changePercent = liveData?.changePercent || 0;
+              let changePercent = 0;
+              
+              // Handle NaN, Infinity, null, undefined values for changePercent
+              if (hasData && liveData.changePercent !== undefined && liveData.changePercent !== null) {
+                if (!isNaN(liveData.changePercent) && isFinite(liveData.changePercent)) {
+                  changePercent = liveData.changePercent;
+                } else {
+                  changePercent = 0;
+                }
+              }
+              
               const isPositive = changePercent > 0;
+              const ltp = liveData?.ltp;
+              const isIndex = instrument.index;
               
               return (
                 <div
                   key={instrument.id}
-                  className="flex items-center gap-2 p-2 rounded hover:bg-slate-700 hover:bg-opacity-30 transition border border-white border-opacity-5"
+                  className="flex items-center gap-2 p-2 rounded hover:bg-slate-700 hover:bg-opacity-30 transition border border-white border-opacity-5 group"
                 >
-                  {/* Favorite Button */}
-                  <button
-                    onClick={() => toggleFavorite(instrument.token)}
-                    className="p-0.5 hover:opacity-80 transition shrink-0"
-                  >
-                    <Star
-                      size={14}
-                      className={
-                        favorites.has(String(instrument.token))
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-gray-400'
-                      }
-                    />
-                  </button>
-
                   {/* Instrument Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-1">
                       <p className="text-white text-xs font-semibold truncate">
                         {instrument.display_name}
-                      </p>
-                      <p className="text-gray-500 text-xs truncate">
-                        {instrument.short_name}
                       </p>
                     </div>
                     <div className="flex items-center gap-1 text-gray-500 text-xs mt-0.5">
@@ -179,23 +153,37 @@ export default function MarketWatchWidget() {
                     </div>
                   </div>
 
-                  {/* Live Price Data */}
-                  {hasData ? (
-                    <div className="text-right shrink-0 min-w-20">
-                      <p className="text-white text-xs font-semibold">
-                        ₹{liveData.ltp?.toFixed(2) || '-'}
-                      </p>
-                      <p className={`text-xs font-medium ${
-                        isPositive ? 'text-green-400' : 'text-red-400'
-                      }`}>
-                        {isPositive ? '+' : ''}{changePercent.toFixed(2)}%
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="text-right shrink-0 min-w-20">
-                      <p className="text-gray-500 text-xs">-</p>
-                    </div>
-                  )}
+                  {/* Live Price Data - Always visible */}
+                  <div className="text-right shrink-0 min-w-28">
+                    <p className="text-white text-xs font-semibold">
+                      {ltp && ltp > 0 ? `₹${ltp.toFixed(2)}` : '-'}
+                    </p>
+                    <p className={`text-xs font-medium ${
+                      isPositive ? 'text-green-400' : changePercent === 0 ? 'text-gray-400' : 'text-red-400'
+                    }`}>
+                      {`${isPositive && changePercent !== 0 ? '+' : ''}${changePercent.toFixed(2)}%`}
+                    </p>
+                  </div>
+
+                  {/* Hover Action Buttons - Only show on hover for this specific row */}
+                  <div className="hidden group-hover:flex items-center gap-1 shrink-0 flex-wrap justify-start">
+                    {!isIndex && (
+                      <>
+                        <button className="px-2 py-1 text-xs bg-green-900 bg-opacity-40 text-green-300 rounded hover:bg-opacity-60 transition">
+                          Buy
+                        </button>
+                        <button className="px-2 py-1 text-xs bg-red-900 bg-opacity-40 text-red-300 rounded hover:bg-opacity-60 transition">
+                          Sell
+                        </button>
+                      </>
+                    )}
+                    <button className="px-2 py-1 text-xs bg-blue-900 bg-opacity-40 text-blue-300 rounded hover:bg-opacity-60 transition">
+                      Know More
+                    </button>
+                    <button className="px-2 py-1 text-xs bg-purple-900 bg-opacity-40 text-purple-300 rounded hover:bg-opacity-60 transition">
+                      Depth
+                    </button>
+                  </div>
                 </div>
               );
             })}
